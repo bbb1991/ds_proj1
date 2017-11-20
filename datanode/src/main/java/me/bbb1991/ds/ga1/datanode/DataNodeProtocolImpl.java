@@ -6,10 +6,10 @@ import java.io.IOException;
 
 public class DataNodeProtocolImpl implements DataNodeProtocol {
     public long getProtocolVersion(String s, long l) throws IOException {
-        return 1;
+        return versionID;
     }
 
     public ProtocolSignature getProtocolSignature(String s, long l, int i) throws IOException {
-        return new ProtocolSignature(1, null);
+        return new ProtocolSignature(versionID, null);
     }
 }

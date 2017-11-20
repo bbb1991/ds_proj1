@@ -1,6 +1,5 @@
 package me.bbb1991.ds.ga1.datanode;
 
-import com.google.gson.Gson;
 import me.bbb1991.ds.ga1.common.Utils;
 import me.bbb1991.ds.ga1.common.model.DataNode;
 import org.apache.hadoop.conf.Configuration;
@@ -10,10 +9,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.net.InetSocketAddress;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 @SpringBootApplication
@@ -51,11 +48,9 @@ public class Application {
      */
     private static void notifyNameNode() {
         LOGGER.info("Sending hello message to namenode");
-        try (Socket socket = new Socket()) {
-            socket.connect(new InetSocketAddress("localhost", 9001));
-            try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()))) {
-                writer.write(new Gson().toJson(new DataNode("localhost", 9090)));
-            }
+        try (Socket socket = new Socket("localhost", 9002);
+             ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream())) {
+            objectOutputStream.writeObject(new DataNode("localhost", 9090));
         } catch (IOException e) {
             LOGGER.error("Error while sending hello message to namenode!", e);
             throw new RuntimeException(e);

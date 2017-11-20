@@ -1,6 +1,7 @@
 package me.bbb1991.ds.ga1.namenode;
 
 import com.google.gson.Gson;
+import me.bbb1991.ds.ga1.common.model.Command;
 import me.bbb1991.ds.ga1.common.model.DataNode;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.ipc.RPC;
@@ -9,9 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -41,28 +40,23 @@ public class Application {
                 .setPort(9000)
                 .build();
         server.start();
+        openSocketToClient();
         openSocketToDataNode();
     }
 
     private static void openSocketToDataNode() {
         final ServerSocket serverSocket;
         try {
-            serverSocket = new ServerSocket(9001);
+            serverSocket = new ServerSocket(9002);
             new Thread(() -> {
                 while (true) {
                     try (Socket socket = serverSocket.accept();
-                         BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
-                        String line;
-                        while (true) {
-                            line = reader.readLine();
-                            if (line == null) break;
-                            LOGGER.info("Incoming message from datanode: {}", line);
-                            Gson gson = new Gson();
-                            dataNodes.add(gson.fromJson(line, DataNode.class));
-                            LOGGER.info("Added new Datanode to list. Now list of datanode is: {}", dataNodes.size());
-                        }
-                        socket.close();
-                    } catch (IOException e) {
+                         ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream())
+                    ) {
+                        DataNode dataNode = (DataNode) objectInputStream.readObject();
+                        dataNodes.add(dataNode);
+                        LOGGER.info("{}", dataNode);
+                    } catch (Exception e) {
                         LOGGER.error("ERROR!", e);
                         throw new RuntimeException(e);
                     }
@@ -71,7 +65,32 @@ public class Application {
             }).start();
         } catch (IOException e) {
             LOGGER.error("ERROR!", e);
-            e.printStackTrace();
+        }
+    }
+
+    private static void openSocketToClient() {
+        final ServerSocket serverSocket;
+        try {
+            serverSocket = new ServerSocket(9001);
+            new Thread(() -> {
+                while (true) {
+                    try (Socket socket = serverSocket.accept();
+                         ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+                         ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
+                    ) {
+                        Command command = (Command) objectInputStream.readObject();
+                        LOGGER.info("Got command type: {}", command.getCommandType());
+                        objectOutputStream.writeObject("OK");
+                        socket.close();
+                    } catch (Exception e) {
+                        LOGGER.error("ERROR!", e);
+                        throw new RuntimeException(e);
+                    }
+                }
+
+            }).start();
+        } catch (IOException e) {
+            LOGGER.error("ERROR!", e);
         }
     }
 }
