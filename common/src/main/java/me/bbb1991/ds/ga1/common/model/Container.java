@@ -14,8 +14,8 @@ public class Container<T> implements Serializable {
         this(commandType, null);
     }
 
-    public Container(CommandType commandType, String objectName) {
-        this(commandType, null, objectName);
+    public Container(CommandType commandType, T object) {
+        this(commandType, object, null);
     }
 
     public Container(CommandType commandType, T object, String objectName) {

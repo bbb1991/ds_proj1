@@ -13,21 +13,23 @@
                 <thead>
                 <tr>
                     <th>File name</th>
+                    <th>File type</th>
                     <th>File size</th>
                 </tr>
                 </thead>
                 <tbody>
                 <#list files as file>
                 <tr>
-                    <td>${file.id}</td>
+                    <td>${file.originalName}</td>
                     <td>${file.datatype}</td>
+                    <td>${file.fileSize}</td>
                 </tr>
                 </#list>
                 </tbody>
             </table>
 
 
-            <p>${files?size}</p>
+            <#--<p>${files?size}</p>-->
             <br>
             <form method="post" action="/mkdir">
                 <input type="text" placeholder="Folder name" name="folderName">
