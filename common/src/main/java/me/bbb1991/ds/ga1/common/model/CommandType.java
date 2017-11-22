@@ -5,4 +5,7 @@ public enum CommandType {
     HEARTBEAT, // type of command, that namenode sends to datanode to check, is datanode alive or not
     GET, // download file/chunk of file from datanode
     PUT, // upload file/chunk of file from datanode
+    OK,
+    MKDIR,
+    ERROR,
 }

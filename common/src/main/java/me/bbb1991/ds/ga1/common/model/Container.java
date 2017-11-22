@@ -2,7 +2,7 @@ package me.bbb1991.ds.ga1.common.model;
 
 import java.io.Serializable;
 
-public class Command<T> implements Serializable {
+public class Container<T> implements Serializable {
 
     private CommandType commandType;
 
@@ -10,15 +10,15 @@ public class Command<T> implements Serializable {
 
     private String objectName;
 
-    public Command(CommandType commandType) {
+    public Container(CommandType commandType) {
         this(commandType, null);
     }
 
-    public Command(CommandType commandType, T object) {
-        this(commandType, object, null);
+    public Container(CommandType commandType, String objectName) {
+        this(commandType, null, objectName);
     }
 
-    public Command(CommandType commandType, T object, String objectName) {
+    public Container(CommandType commandType, T object, String objectName) {
         this.commandType = commandType;
         this.object = object;
         this.objectName = objectName;
@@ -46,6 +46,10 @@ public class Command<T> implements Serializable {
 
     public void setObjectName(String objectName) {
         this.objectName = objectName;
+    }
+
+    public CommandType getStatus() {
+        return getCommandType();
     }
 
     @Override

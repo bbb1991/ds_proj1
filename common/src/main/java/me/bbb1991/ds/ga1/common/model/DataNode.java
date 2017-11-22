@@ -1,5 +1,7 @@
 package me.bbb1991.ds.ga1.common.model;
 
+import com.google.gson.Gson;
+
 import java.io.Serializable;
 
 public class DataNode implements Serializable {
@@ -34,6 +36,6 @@ public class DataNode implements Serializable {
 
     @Override
     public String toString() {
-        return String.format("%s:%d", host, commandPort);
+        return new Gson().toJson(this);
     }
 }
