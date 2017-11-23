@@ -8,4 +8,5 @@ public enum CommandType {
     OK,
     MKDIR,
     ERROR,
+    UPLOAD_FILE,
 }

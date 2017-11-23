@@ -70,30 +70,16 @@ public class Chunk implements Serializable {
     @Column
     private long parentId;
 
+    /**
+     * Is file available for access or not. File might be locked when file is processing, for examlpe,
+     * moving or uploading.
+     */
+    @Column
+    private boolean locked;
+
     public Chunk() {
     }
 
-    public Chunk(String originalName, int seqNo, String nameNodeHost, int nameNodePort, long fileSize, FileType datatype, long parentId) {
-        this.originalName = originalName;
-        this.seqNo = seqNo;
-        this.nameNodeHost = nameNodeHost;
-        this.nameNodePort = nameNodePort;
-        this.fileSize = fileSize;
-        this.datatype = datatype;
-        this.parentId = parentId;
-    }
-
-
-    public Chunk(String originalName, String filename, int seqNo, String nameNodeHost, int nameNodePort, long fileSize, FileType datatype, long parentId) {
-        this.originalName = originalName;
-        this.filename = filename;
-        this.seqNo = seqNo;
-        this.nameNodeHost = nameNodeHost;
-        this.nameNodePort = nameNodePort;
-        this.fileSize = fileSize;
-        this.datatype = datatype;
-        this.parentId = parentId;
-    }
 
     public String getFilename() {
         return filename;
@@ -167,8 +153,44 @@ public class Chunk implements Serializable {
         this.originalName = originalName;
     }
 
+    public boolean isLocked() {
+        return locked;
+    }
+
+    public void setLocked(boolean locked) {
+        this.locked = locked;
+    }
+
+    public static Builder builder() {
+        return new Chunk().new Builder();
+    }
+
     @Override
     public String toString() {
         return new Gson().toJson(this);
+    }
+
+    public class Builder {
+
+        private Builder() {}
+
+        public Builder setOriginalName(String name) {
+            Chunk.this.setOriginalName(name);
+            return this;
+        }
+
+        public Builder setDatatype(FileType fileType) {
+            Chunk.this.setDatatype(fileType);
+            return this;
+        }
+
+        public Builder setLocked(boolean locked) {
+            Chunk.this.setLocked(locked);
+            return this;
+        }
+
+        public Chunk build() {
+            return Chunk.this;
+        }
     }
 }

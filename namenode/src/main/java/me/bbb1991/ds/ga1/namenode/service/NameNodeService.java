@@ -6,34 +6,22 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 @Component
 public class NameNodeService {
 
-    private List<Chunk> testChunk; // TODO remove mess
-
     public NameNodeService() {
         dataNodes = new ArrayList<>();
-
-
-        testChunk = new ArrayList<>();
-        testChunk.add(new Chunk("file1.txt", "20170101082350", 1, "localhost", 9001, 100, FileType.FILE, 0));
-        testChunk.add(new Chunk("file2.txt", "20171101082350", 1, "localhost", 9001, 100, FileType.FILE, 0));
-        testChunk.add(new Chunk("file3.txt", "20171101082350", 1, "localhost", 9001, 100, FileType.FILE, 0));
     }
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NameNodeService.class);
 
-    private DBService dbService; // TODO add logic with DS service
+    private DBService dbService;
 
     private List<DataNode> dataNodes;
 
@@ -81,28 +69,36 @@ public class NameNodeService {
                                 LOGGER.info("Files: {}", files.size());
                                 out.writeObject(new Container<>(CommandType.OK, files, null));
                                 break;
+
                             case GET:
                                 String fileName = (String) container.getObject();
 //                                List<Chunk> f  = dbService.getFilesByName(fileName);
                                 LOGGER.info("Getting filename: {}", fileName);
-                                Optional<Chunk> optional = testChunk.stream().filter(e -> e.getOriginalName().equalsIgnoreCase(fileName)).findFirst();
-                                LOGGER.info("Is file found: {}", optional.isPresent());
-                                if (!optional.isPresent()) {
-                                    out.writeObject(new Container<>(CommandType.ERROR));
-                                    return;
-                                }
-
-                                Chunk chunk = optional.get();
-                                LOGGER.info("Getting file: {}", chunk);
-                                out.writeObject(new Container<List<Chunk>>(CommandType.OK, new ArrayList<>(Collections.singleton(chunk)), null));
                                 break;
+
 
                             case MKDIR:
                                 String folderName = (String) container.getObject();
                                 LOGGER.info("Creating folder with name: {}", folderName);
 
-                                dbService.saveObject(new Chunk(folderName, 0, null, 0, 0, FileType.FOLDER, 0));
+                                dbService.saveObject(Chunk.builder().setOriginalName(folderName).setDatatype(FileType.FOLDER).build());
                                 out.writeObject(new Container<Void>(CommandType.OK));
+                                break;
+
+                            case UPLOAD_FILE:
+                                File file = (File) container.getObject();
+                                LOGGER.info("Saving file: {}", file);
+                                try (FileOutputStream fileOutputStream = new FileOutputStream(file.getName());
+                                     ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream)) {
+                                    objectOutputStream.writeObject(file);
+                                }
+                                LOGGER.info("File saved!");
+                                out.writeObject(new Container<Void>(CommandType.OK));
+                                break;
+
+                            default:
+                                throw new RuntimeException("Not implemented!");
+
                         }
                     } catch (Exception e) {
                         LOGGER.error("ERROR!", e);

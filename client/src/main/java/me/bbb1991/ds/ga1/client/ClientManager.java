@@ -6,7 +6,10 @@ import me.bbb1991.ds.ga1.common.model.Container;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
@@ -29,7 +32,7 @@ public class ClientManager {
 
     public void mkdir(String folderName) {
         LOGGER.info("Sending request to create folder");
-        executor(Void.class, new Container<String>(CommandType.MKDIR, folderName));
+        executor(Void.class, new Container<>(CommandType.MKDIR, folderName));
     }
 
 
@@ -47,6 +50,22 @@ public class ClientManager {
             return result.getObject();
         } catch (Exception e) {
             LOGGER.error("ERROR!", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void uploadFile(MultipartFile file) {
+        executor(Void.class, new Container<>(CommandType.UPLOAD_FILE, convert(file)));
+    }
+
+    public static File convert(MultipartFile file) {
+        File convFile = new File(file.getOriginalFilename());
+
+        try (FileOutputStream fos = new FileOutputStream(convFile)) {
+            convFile.createNewFile();
+            fos.write(file.getBytes());
+            return convFile;
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
