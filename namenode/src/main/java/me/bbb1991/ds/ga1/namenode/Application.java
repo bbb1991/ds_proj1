@@ -7,8 +7,8 @@ import org.apache.hadoop.ipc.RPC;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.Banner;
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -20,6 +20,10 @@ import java.util.List;
 @SpringBootApplication
 @EntityScan("me.bbb1991.ds.ga1.common.model")
 public class Application {
+
+    private static String nameNodeHost;
+
+    private static int nameNodePort;
 
     private static NameNodeService nameNodeService;
 
@@ -40,10 +44,10 @@ public class Application {
         RPC.Server server = new RPC.Builder(conf)
                 .setProtocol(NameNodeProtocol.class)
                 .setInstance(new NameNodeProtocolImpl())
-                .setBindAddress("0.0.0.0")
+                .setBindAddress(nameNodeHost)
                 .setNumHandlers(2)
                 .setVerbose(true)
-                .setPort(9000)
+                .setPort(nameNodePort)
                 .build();
         server.start();
         nameNodeService.openSocketToClient();
@@ -53,6 +57,16 @@ public class Application {
     @Autowired
     public void setNameNodeService(NameNodeService nameNodeService) {
         Application.nameNodeService = nameNodeService;
+    }
+
+    @Value("${namenode.host}")
+    public void setNameNodeHost(String nameNodeHost) {
+        Application.nameNodeHost = nameNodeHost;
+    }
+
+    @Value("${namenode.port}")
+    public void setNameNodePort(int nameNodePort) {
+        Application.nameNodePort = nameNodePort;
     }
 
     @Bean

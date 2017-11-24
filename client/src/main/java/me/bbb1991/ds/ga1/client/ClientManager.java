@@ -2,7 +2,7 @@ package me.bbb1991.ds.ga1.client;
 
 import me.bbb1991.ds.ga1.common.model.Chunk;
 import me.bbb1991.ds.ga1.common.model.CommandType;
-import me.bbb1991.ds.ga1.common.model.Container;
+import me.bbb1991.ds.ga1.common.model.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -15,6 +15,12 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.List;
 
+/**
+ * Class with various methods, that will help to communicate client with servers via sockets
+ *
+ * @author Bagdat Bimaganbetov
+ * @author b.bimaganbetov@innopolis.ru
+ */
 @Component
 public class ClientManager {
 
@@ -22,32 +28,71 @@ public class ClientManager {
 
     public List<Chunk> getListOfFiles(String path) {
         LOGGER.info("Sending command to get list of files to name node");
-        return executor(null, new Container<>(CommandType.LIST_FILES, path));
+        try (Socket socket = new Socket("localhost", 9001);
+             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+             ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
+            out.writeObject(CommandType.LIST_FILES);
+            LOGGER.info("Sent command");
+            out.writeObject(path);
+            LOGGER.info("Sent path info");
+            Status status = (Status) in.readObject();
+
+            LOGGER.info("Response status is: {}", status);
+
+            if (status != Status.OK) {
+                throw new RuntimeException();
+            }
+
+            return (List<Chunk>) in.readObject();
+
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR!", e);
+            throw new RuntimeException(e);
+        }
     }
 
     public List<Chunk> getFile(String file) {
         LOGGER.info("Sending request to name node to get info about where we can download given file");
-        return executor(null, new Container(CommandType.GET, file));
+        try (Socket socket = new Socket("localhost", 9001);
+             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+             ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
+            out.writeObject(CommandType.GET);
+            LOGGER.info("Sent command");
+            out.writeObject(file);
+            LOGGER.info("Sent path");
+            Status status = (Status) in.readObject();
+
+            LOGGER.info("Response status is: {}", status);
+
+            if (status != Status.OK) {
+                throw new RuntimeException();
+            }
+
+            return (List<Chunk>) in.readObject();
+
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR!", e);
+            throw new RuntimeException(e);
+        }
     }
 
     public void mkdir(String folderName) {
         LOGGER.info("Sending request to create folder");
-        executor(Void.class, new Container<>(CommandType.MKDIR, folderName));
-    }
-
-
-    public <T> T executor(T returnType, Container container) {
         try (Socket socket = new Socket("localhost", 9001);
              ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
              ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
-            out.writeObject(container);
-            Container<T> result = (Container<T>) in.readObject();
+            out.writeObject(CommandType.MKDIR);
+            out.writeObject(folderName);
+            Status status = (Status) in.readObject();
 
-            LOGGER.info("The result of request is: {}", result);
-            if (result.getStatus() != CommandType.OK) {
-                throw new RuntimeException("Response is not that we expected!");
+            LOGGER.info("Response status is: {}", status);
+
+            if (status != Status.OK) {
+                throw new RuntimeException();
             }
-            return result.getObject();
+
         } catch (Exception e) {
             LOGGER.error("ERROR!", e);
             throw new RuntimeException(e);
@@ -55,10 +100,32 @@ public class ClientManager {
     }
 
     public void uploadFile(MultipartFile file) {
-        executor(Void.class, new Container<>(CommandType.UPLOAD_FILE, convert(file)));
+        try (Socket socket = new Socket("localhost", 9001);
+             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+             ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
+            out.writeObject(CommandType.UPLOAD_FILE);
+            out.writeObject(file.getSize());
+            out.writeObject(file.getName());
+//            out.writeObject(convert(file));
+            Status status = (Status) in.readObject();
+            String datanode = (String) in.readObject();
+            String filename = (String) in.readObject();
+
+            LOGGER.info("Response status is: {}", status);
+            LOGGER.info("Datanode is: {}", datanode);
+            LOGGER.info("File name is:{}", filename);
+
+            if (status != Status.OK) {
+                throw new RuntimeException();
+            }
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR!", e);
+            throw new RuntimeException(e);
+        }
     }
 
-    public static File convert(MultipartFile file) {
+    private static File convert(MultipartFile file) {
         File convFile = new File(file.getOriginalFilename());
 
         try (FileOutputStream fos = new FileOutputStream(convFile)) {

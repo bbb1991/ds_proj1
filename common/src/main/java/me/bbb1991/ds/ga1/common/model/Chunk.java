@@ -41,13 +41,13 @@ public class Chunk implements Serializable {
      * Hostname, where client can download file
      */
     @Column
-    private String nameNodeHost;
+    private String dataNodeHost;
 
     /**
      * Which port listens datanode
      */
     @Column
-    private int nameNodePort;
+    private int dataNodePort;
 
     /**
      * File size
@@ -80,7 +80,6 @@ public class Chunk implements Serializable {
     public Chunk() {
     }
 
-
     public String getFilename() {
         return filename;
     }
@@ -97,20 +96,20 @@ public class Chunk implements Serializable {
         this.seqNo = seqNo;
     }
 
-    public String getNameNodeHost() {
-        return nameNodeHost;
+    public String getDataNodeHost() {
+        return dataNodeHost;
     }
 
-    public void setNameNodeHost(String nameNodeHost) {
-        this.nameNodeHost = nameNodeHost;
+    public void setDataNodeHost(String dataNodeHost) {
+        this.dataNodeHost = dataNodeHost;
     }
 
-    public int getNameNodePort() {
-        return nameNodePort;
+    public int getDataNodePort() {
+        return dataNodePort;
     }
 
-    public void setNameNodePort(int nameNodePort) {
-        this.nameNodePort = nameNodePort;
+    public void setDataNodePort(int dataNodePort) {
+        this.dataNodePort = dataNodePort;
     }
 
     public Long getId() {
@@ -191,6 +190,31 @@ public class Chunk implements Serializable {
 
         public Chunk build() {
             return Chunk.this;
+        }
+
+        public Builder setFileName(String name) {
+            Chunk.this.setFilename(name);
+            return this;
+        }
+
+        public Builder setFileSize(long fileSize) {
+            Chunk.this.setFileSize(fileSize);
+            return this;
+        }
+
+        public Builder setDataNodeHost(String host) {
+            Chunk.this.setDataNodeHost(host);
+            return this;
+        }
+
+        public Builder setDataNodePort(int port) {
+            Chunk.this.setDataNodePort(port);
+            return this;
+        }
+
+        public Builder setSeqNo(int seqNo) {
+            Chunk.this.setSeqNo(seqNo);
+            return this;
         }
     }
 }

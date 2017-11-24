@@ -1,20 +1,19 @@
 package me.bbb1991.ds.ga1.datanode;
 
 import me.bbb1991.ds.ga1.common.Utils;
-import me.bbb1991.ds.ga1.common.model.DataNode;
+import me.bbb1991.ds.ga1.datanode.service.DataNodeService;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.ipc.RPC;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.net.Socket;
-
 @SpringBootApplication
 public class Application {
+
+    private static DataNodeService dataNodeService;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Application.class);
 
@@ -36,24 +35,14 @@ public class Application {
                 .build();
         server.start();
 
-        notifyNameNode();
+        dataNodeService.notifyNameNode();
+        dataNodeService.openSocket();
 
-        server.stop();
+//        server.stop();
     }
 
-    /**
-     * Method that sends info message to namenode. Info message says that new datanode came up and ready to receive
-     * commands. Also info message contains useful information, such as ip address/host and which port opened to
-     * receive commands
-     */
-    private static void notifyNameNode() {
-        LOGGER.info("Sending hello message to namenode");
-        try (Socket socket = new Socket("localhost", 9002);
-             ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream())) {
-            objectOutputStream.writeObject(new DataNode("localhost", 9090));
-        } catch (IOException e) {
-            LOGGER.error("Error while sending hello message to namenode!", e);
-            throw new RuntimeException(e);
-        }
+    @Autowired
+    public void setDataNodeService(DataNodeService dataNodeService) {
+        Application.dataNodeService = dataNodeService;
     }
 }

@@ -1,9 +1,11 @@
 package me.bbb1991.ds.ga1.namenode.service;
 
+import me.bbb1991.ds.ga1.common.Utils;
 import me.bbb1991.ds.ga1.common.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
@@ -61,39 +63,65 @@ public class NameNodeService {
                          ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
                          ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
                     ) {
-                        Container container = (Container) in.readObject();
-                        LOGGER.info("Got container type: {}", container.getCommandType());
-                        switch (container.getCommandType()) {
+                        CommandType command = (CommandType) in.readObject();
+                        LOGGER.info("Got command from client: {}", command);
+                        switch (command) {
                             case LIST_FILES:
-                                List<Chunk> files = dbService.getAllFiles("/"); // TODO various folder logic
+                                LOGGER.info("Getting path info");
+                                String path = (String) in.readObject();
+                                LOGGER.info("Got path info. Forming answer");
+                                List<Chunk> files = dbService.getAllFiles(path); // TODO various folder logic
                                 LOGGER.info("Files: {}", files.size());
-                                out.writeObject(new Container<>(CommandType.OK, files, null));
+                                out.writeObject(Status.OK);
+                                out.writeObject(files);
                                 break;
 
                             case GET:
-                                String fileName = (String) container.getObject();
+                                String fileName = (String) in.readObject(); // TODO
 //                                List<Chunk> f  = dbService.getFilesByName(fileName);
                                 LOGGER.info("Getting filename: {}", fileName);
                                 break;
 
 
                             case MKDIR:
-                                String folderName = (String) container.getObject();
+                                String folderName = (String) in.readObject();
                                 LOGGER.info("Creating folder with name: {}", folderName);
 
                                 dbService.saveObject(Chunk.builder().setOriginalName(folderName).setDatatype(FileType.FOLDER).build());
-                                out.writeObject(new Container<Void>(CommandType.OK));
+                                out.writeObject(Status.OK);
                                 break;
 
                             case UPLOAD_FILE:
-                                File file = (File) container.getObject();
-                                LOGGER.info("Saving file: {}", file);
-                                try (FileOutputStream fileOutputStream = new FileOutputStream(file.getName());
-                                     ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream)) {
-                                    objectOutputStream.writeObject(file);
+                                long fileSize = (long) in.readObject(); // todo do something with file size
+                                String originalName = (String) in.readObject(); // todo do something with file size
+
+                                if (dataNodes.isEmpty()) {
+                                    LOGGER.warn("No data node available to save file!");
+                                    out.writeObject(Status.NO_DATANODE_AVAILABLE);
+                                    break;
                                 }
-                                LOGGER.info("File saved!");
-                                out.writeObject(new Container<Void>(CommandType.OK));
+
+                                DataNode dataNode = dataNodes.get(0);
+
+                                String filename = Utils.getFileName();
+                                LOGGER.info("File name is: {}", filename);
+
+                                Chunk chunk = Chunk.builder()
+                                        .setDatatype(FileType.FILE)
+                                        .setOriginalName(originalName)
+                                        .setFileName(filename)
+                                        .setLocked(true)
+                                        .setFileSize(fileSize)
+                                        .setSeqNo(1)
+                                        .setDataNodeHost(dataNode.getHost())
+                                        .setDataNodePort(dataNode.getCommandPort())
+                                        .build();
+
+                                dbService.saveObject(chunk);
+
+                                out.writeObject(Status.OK);
+                                out.writeObject(String.format("%s:%d", dataNode.getHost(), dataNode.getCommandPort()));
+                                out.writeObject(filename);
                                 break;
 
                             default:
@@ -117,8 +145,8 @@ public class NameNodeService {
         this.dbService = dbService;
     }
 
-    @Autowired
-    public void setDataNodes(List<DataNode> dataNodes) {
-        this.dataNodes = dataNodes;
+    @Bean
+    public List<DataNode> getDataNodes() {
+        return dataNodes;
     }
 }
