@@ -1,6 +1,5 @@
 package me.bbb1991.ds.ga1.namenode;
 
-import me.bbb1991.ds.ga1.common.model.DataNode;
 import me.bbb1991.ds.ga1.namenode.service.NameNodeService;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.ipc.RPC;
@@ -12,32 +11,37 @@ import org.springframework.boot.Banner;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.context.annotation.Bean;
 
-import java.util.ArrayList;
-import java.util.List;
-
+/**
+ * Main class that runs everything
+ *
+ * @author Bagdat Bimaganbetov
+ * @author b.bimaganbetov@innopolis.ru
+ */
 @SpringBootApplication
 @EntityScan("me.bbb1991.ds.ga1.common.model")
 public class Application {
 
+    /**
+     * What host should listen
+     */
     private static String nameNodeHost;
 
+    /**
+     * What port should listen
+     */
     private static int nameNodePort;
 
+    /**
+     * Class with various methods to connect datanode and client.
+     */
     private static NameNodeService nameNodeService;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Application.class);
 
-    private static List<DataNode> dataNodes;
-
     public static void main(String[] args) throws Exception {
 
         new SpringApplicationBuilder(Application.class).bannerMode(Banner.Mode.OFF).application().run(args);
-
-//        SpringApplication.run(Application.class, args);
-
-        dataNodes = new ArrayList<>();
 
         Configuration conf = new Configuration();
 
@@ -67,10 +71,5 @@ public class Application {
     @Value("${namenode.port}")
     public void setNameNodePort(int nameNodePort) {
         Application.nameNodePort = nameNodePort;
-    }
-
-    @Bean
-    public static List<DataNode> getDataNodes() {
-        return dataNodes;
     }
 }

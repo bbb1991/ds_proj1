@@ -26,6 +26,12 @@ public class ClientManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ClientManager.class);
 
+    /**
+     * Get list of files from namenode
+     *
+     * @param path working directory
+     * @return a list of files from {@param path}
+     */
     public List<Chunk> getListOfFiles(String path) {
         LOGGER.info("Sending command to get list of files to name node");
         try (Socket socket = new Socket("localhost", 9001);
@@ -52,6 +58,12 @@ public class ClientManager {
         }
     }
 
+    /**
+     * Download file from datanode by given {@param file}
+     *
+     * @param file filename to download
+     * @return in case if file was splitted into chunks will return list of chunks, else list with single element
+     */
     public List<Chunk> getFile(String file) {
         LOGGER.info("Sending request to name node to get info about where we can download given file");
         try (Socket socket = new Socket("localhost", 9001);
@@ -78,7 +90,13 @@ public class ClientManager {
         }
     }
 
-    public void mkdir(String folderName) {
+    /**
+     * Create a folder in namenode.
+     *
+     * @param folderName name of new folder
+     */
+    public void mkdir(String folderName) { // TODO add current path
+        // TODO change hardcoded address to config
         LOGGER.info("Sending request to create folder");
         try (Socket socket = new Socket("localhost", 9001);
              ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
@@ -99,7 +117,14 @@ public class ClientManager {
         }
     }
 
+    /**
+     * Upload file to datanode
+     *
+     * @param file to upload to remote server
+     */
     public void uploadFile(MultipartFile file) {
+        // todo change hardcoded address
+        // todo add logic to work with folders
         try (Socket socket = new Socket("localhost", 9001);
              ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
              ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
@@ -125,6 +150,12 @@ public class ClientManager {
         }
     }
 
+    /**
+     * Convert file from {@link MultipartFile} to {@link File}
+     *
+     * @param file that need to upload
+     * @return converted file
+     */
     private static File convert(MultipartFile file) {
         File convFile = new File(file.getOriginalFilename());
 

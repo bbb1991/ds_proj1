@@ -10,13 +10,28 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+/**
+ * Main class
+ *
+ * @author Bagdat BImaganbetov
+ * @author b.bimaganbetov@innopolis.ru
+ */
 @SpringBootApplication
 public class Application {
 
+    /**
+     * Class with methods that works with remote server
+     */
     private static DataNodeService dataNodeService;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Application.class);
 
+    /**
+     * main method, that start everything
+     *
+     * @param args
+     * @throws Exception
+     */
     public static void main(String[] args) throws Exception {
 
         SpringApplication.run(Application.class, args);

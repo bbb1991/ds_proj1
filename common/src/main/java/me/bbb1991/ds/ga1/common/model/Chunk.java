@@ -169,9 +169,13 @@ public class Chunk implements Serializable {
         return new Gson().toJson(this);
     }
 
+    /**
+     * Builder for Chunk class.
+     */
     public class Builder {
 
-        private Builder() {}
+        private Builder() {
+        }
 
         public Builder setOriginalName(String name) {
             Chunk.this.setOriginalName(name);

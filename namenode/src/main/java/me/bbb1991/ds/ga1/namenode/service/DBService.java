@@ -10,6 +10,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/**
+ * Class with methods to work with DB
+ *
+ * @author Bagdat Bimaganbetov
+ * @author b.bimaganbetov@innopolis.ru
+ */
 @Service
 public class DBService {
 
@@ -18,6 +24,12 @@ public class DBService {
     private FileChunkDao fileChunkDao;
 
 
+    /**
+     * Get files and folders in given {@param folder}
+     *
+     * @param folder in what folder we should look
+     * @return a list of files
+     */
     public List<Chunk> getAllFiles(String folder) {
         return fileChunkDao.getAllFilesOnFolder(folder);
     }
@@ -27,10 +39,21 @@ public class DBService {
         this.fileChunkDao = fileChunkDao;
     }
 
+    /**
+     * Get file by name. If file was split into chunks returns list of chunks
+     *
+     * @param fileName what file we are looking
+     * @return list of chunks or list with single file
+     */
     public List<Chunk> getFilesByName(String fileName) {
         return fileChunkDao.getFileByName(fileName);
     }
 
+    /**
+     * Save record about file/folder to DB
+     *
+     * @param chunk what we should save
+     */
     @Transactional
     public void saveObject(Chunk chunk) {
         fileChunkDao.saveFile(chunk);

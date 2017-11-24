@@ -4,10 +4,22 @@ import com.google.gson.Gson;
 
 import java.io.Serializable;
 
+/**
+ * Class for holding information about datanode.
+ *
+ * @author Bagdat Bimaganbetov
+ * @author b.bimaganbetov@innopolis.ru
+ */
 public class DataNode implements Serializable {
 
+    /**
+     * Data node hostname
+     */
     private String host;
 
+    /**
+     * Data node port
+     */
     private int commandPort;
 
     public DataNode() {

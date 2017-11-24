@@ -21,6 +21,9 @@ public class TemplateController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TemplateController.class);
 
+    /**
+     * Class holder with various methods to work with remote servers
+     */
     private ClientManager clientManager;
 
 
@@ -48,6 +51,7 @@ public class TemplateController {
      *
      * @param folderName what name is you given
      * @return redirect to main page
+     * @see TemplateController#index(Map)
      */
     @PostMapping("/mkdir")
     public String mkdir(@RequestParam String folderName) {
@@ -59,6 +63,13 @@ public class TemplateController {
         return "redirect:/";
     }
 
+    /**
+     * Uploading new file to the datanode
+     *
+     * @param file to upload
+     * @return redirect to main page.
+     * @see TemplateController#index(Map)
+     */
     @PostMapping("/upload")
     public String upload(@RequestParam MultipartFile file) {
 

@@ -9,6 +9,9 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+/**
+ * Class with various methods that works with remote servers.
+ */
 @Controller
 public class DataNodeService {
 
@@ -30,6 +33,9 @@ public class DataNodeService {
         }
     }
 
+    /**
+     * Opening socket and listen port
+     */
     public void openSocket() {
         final ServerSocket serverSocket;
         try {
