@@ -95,6 +95,7 @@ public class NameNodeService {
                                 long fileSize = (long) in.readObject(); // todo do something with file size
                                 String originalName = (String) in.readObject(); // todo do something with file size
 
+                                LOGGER.info("Original name is: {}", originalName);
                                 if (dataNodes.isEmpty()) {
                                     LOGGER.warn("No data node available to save file!");
                                     out.writeObject(Status.NO_DATANODE_AVAILABLE);
@@ -120,7 +121,7 @@ public class NameNodeService {
                                 dbService.saveObject(chunk);
 
                                 out.writeObject(Status.OK);
-                                out.writeObject(String.format("%s:%d", dataNode.getHost(), dataNode.getCommandPort()));
+                                out.writeObject(dataNode);
                                 out.writeObject(filename);
                                 break;
 

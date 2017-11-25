@@ -8,6 +8,10 @@ file saved and etc.
 mvn clean install
 mvn spring-boot:run -pl namenode
 ```
+### DB
+By default, this project uses **H2** database. But you can change it to another DB.
+To access data in runtime, after starting namenode go to [http://localhost:8000/console](http://localhost:8000) and
+change JDBC URL to ```jdbc:h2:./test```
 
 ## Datanode
 ### Short description

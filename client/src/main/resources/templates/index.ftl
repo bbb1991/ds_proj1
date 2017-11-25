@@ -32,7 +32,7 @@
         <#--<p>${files?size}</p>-->
             <br>
             <form method="post" action="/mkdir">
-                <input type="text" placeholder="Folder name" name="folderName">
+                <input type="text" placeholder="Folder name" name="folderName" required>
                 <input type="submit" value="Create folder">
             </form>
 

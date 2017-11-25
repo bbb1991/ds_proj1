@@ -1,8 +1,12 @@
 package me.bbb1991.ds.ga1.datanode.service;
 
-import me.bbb1991.ds.ga1.common.model.*;
+import me.bbb1991.ds.ga1.common.model.CommandType;
+import me.bbb1991.ds.ga1.common.model.DataNode;
+import me.bbb1991.ds.ga1.common.model.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Controller;
 
 import java.io.*;
@@ -13,7 +17,11 @@ import java.net.Socket;
  * Class with various methods that works with remote servers.
  */
 @Controller
+@PropertySource("classpath:application.properties")
 public class DataNodeService {
+
+    @Value("${datanode.working_dir}")
+    private String workingPath;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DataNode.class);
 
@@ -52,11 +60,10 @@ public class DataNodeService {
                             case UPLOAD_FILE:
 
                                 File file = (File) in.readObject();
-                                String fileName = (String) in.readObject();
-                                LOGGER.info("Saving new file: {}, with name: {}", file, fileName);
-                                try (FileOutputStream fileOutputStream = new FileOutputStream(fileName);
+                                LOGGER.info("Got file: {} and size is: {}", file.getName(), file.length());
+                                try (FileOutputStream fileOutputStream = new FileOutputStream(file);
                                      ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream)) {
-                                    objectOutputStream.writeObject(file);
+                                    objectOutputStream.writeObject(workingPath + File.separator + file.getName());
                                 }
                                 LOGGER.info("File saved!");
                                 out.writeObject(Status.OK);

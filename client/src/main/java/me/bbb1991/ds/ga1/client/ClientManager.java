@@ -2,16 +2,14 @@ package me.bbb1991.ds.ga1.client;
 
 import me.bbb1991.ds.ga1.common.model.Chunk;
 import me.bbb1991.ds.ga1.common.model.CommandType;
+import me.bbb1991.ds.ga1.common.model.DataNode;
 import me.bbb1991.ds.ga1.common.model.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.Socket;
 import java.util.List;
 
@@ -120,33 +118,64 @@ public class ClientManager {
     /**
      * Upload file to datanode
      *
-     * @param file to upload to remote server
+     * @param multipartFile to upload to remote server
      */
-    public void uploadFile(MultipartFile file) {
+    public void uploadFile(MultipartFile multipartFile) {
         // todo change hardcoded address
         // todo add logic to work with folders
         try (Socket socket = new Socket("localhost", 9001);
              ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
              ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
+            // send request to name node
             out.writeObject(CommandType.UPLOAD_FILE);
-            out.writeObject(file.getSize());
-            out.writeObject(file.getName());
+            out.writeObject(multipartFile.getSize());
+            out.writeObject(multipartFile.getOriginalFilename());
 //            out.writeObject(convert(file));
             Status status = (Status) in.readObject();
-            String datanode = (String) in.readObject();
-            String filename = (String) in.readObject();
-
-            LOGGER.info("Response status is: {}", status);
-            LOGGER.info("Datanode is: {}", datanode);
-            LOGGER.info("File name is:{}", filename);
+            LOGGER.info("Uploading multipart file: {}", multipartFile.getOriginalFilename());
 
             if (status != Status.OK) {
                 throw new RuntimeException();
             }
 
+            DataNode datanode = (DataNode) in.readObject();
+            String filename = (String) in.readObject();
+
+            LOGGER.info("Response status is: {}", status);
+            LOGGER.info("Datanode is: {}", datanode);
+            LOGGER.info("File name is: {}", filename);
+
+//            File newFile = new File(filename);
+
+//            boolean renameResult = convert(multipartFile).renameTo(newFile);
+
+//            LOGGER.info("Applying new name to a file. Result is: {}", renameResult);
+
+//            uploadToDataNode(datanode.getHost(), datanode.getCommandPort(), newFile);
+            File convertedFile = convert(multipartFile);
+            LOGGER.info("Converted file is: {} and size is: {}", convertedFile.getName(), convertedFile.length());
+            uploadToDataNode(datanode.getHost(), datanode.getCommandPort(), convertedFile);
+
         } catch (Exception e) {
             LOGGER.error("ERROR!", e);
             throw new RuntimeException(e);
+        }
+    }
+
+    private void uploadToDataNode(String host, int port, File file) {
+        try (Socket socket = new Socket(host, port);
+             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+             ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
+            out.writeObject(CommandType.UPLOAD_FILE);
+            out.writeObject(file);
+            Status status = (Status) in.readObject();
+
+
+            if (status != Status.OK) {
+                throw new RuntimeException("Status is not what we expected");
+            }
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
         }
     }
 
@@ -165,6 +194,14 @@ public class ClientManager {
             return convFile;
         } catch (Exception e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private void sendFile(Socket socket, MultipartFile file) throws IOException {
+        try (DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream())) {
+            byte[] bytes = (file.getBytes());
+            dataOutputStream.write(bytes);
+            dataOutputStream.flush();
         }
     }
 }
