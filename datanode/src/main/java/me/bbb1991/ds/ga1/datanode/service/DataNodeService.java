@@ -53,21 +53,28 @@ public class DataNodeService {
                     try (Socket socket = serverSocket.accept();
                          ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
                          ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+                         DataInputStream dataInputStream = new DataInputStream(socket.getInputStream());
                     ) {
                         CommandType command = (CommandType) in.readObject();
                         LOGGER.info("Got container type: {}", command);
                         switch (command) {
                             case UPLOAD_FILE:
-
-                                File file = (File) in.readObject();
-                                LOGGER.info("Got file: {} and size is: {}", file.getName(), file.length());
-                                try (FileOutputStream fileOutputStream = new FileOutputStream(file);
-                                     ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream)) {
-                                    objectOutputStream.writeObject(workingPath + File.separator + file.getName());
+                                byte[] buffer = new byte[4096];
+                                long size = (long) in.readObject();
+                                String filename = (String) in.readObject();
+                                try (FileOutputStream fileOutputStream = new FileOutputStream(workingPath + File.pathSeparator + filename)) {
+                                    int read;
+                                    long totalRead = 0;
+                                    long remaining = size;
+                                    while ((read = dataInputStream.read(buffer, 0, (int) Math.min(buffer.length, remaining))) > 0) {
+                                        totalRead += read;
+                                        remaining -= read;
+                                        LOGGER.info("Read {} bytes", totalRead);
+                                        fileOutputStream.write(buffer, 0, read);
+                                    }
+                                    LOGGER.info("File saved!");
                                 }
-                                LOGGER.info("File saved!");
                                 out.writeObject(Status.OK);
-
                                 break;
 
                             default:

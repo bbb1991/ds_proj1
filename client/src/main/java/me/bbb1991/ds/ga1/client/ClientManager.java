@@ -145,16 +145,7 @@ public class ClientManager {
             LOGGER.info("Datanode is: {}", datanode);
             LOGGER.info("File name is: {}", filename);
 
-//            File newFile = new File(filename);
-
-//            boolean renameResult = convert(multipartFile).renameTo(newFile);
-
-//            LOGGER.info("Applying new name to a file. Result is: {}", renameResult);
-
-//            uploadToDataNode(datanode.getHost(), datanode.getCommandPort(), newFile);
-            File convertedFile = convert(multipartFile);
-            LOGGER.info("Converted file is: {} and size is: {}", convertedFile.getName(), convertedFile.length());
-            uploadToDataNode(datanode.getHost(), datanode.getCommandPort(), convertedFile);
+            sendFile(datanode.getHost(), datanode.getCommandPort(), multipartFile, filename);
 
         } catch (Exception e) {
             LOGGER.error("ERROR!", e);
@@ -162,46 +153,26 @@ public class ClientManager {
         }
     }
 
-    private void uploadToDataNode(String host, int port, File file) {
+    private void sendFile(String host, int port, MultipartFile file, String filename) throws IOException {
         try (Socket socket = new Socket(host, port);
+             DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
              ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-             ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
+             ObjectInputStream in = new ObjectInputStream(socket.getInputStream())
+        ) {
             out.writeObject(CommandType.UPLOAD_FILE);
-            out.writeObject(file);
-            Status status = (Status) in.readObject();
+            out.writeObject(file.getSize());
+            out.writeObject(filename);
 
-
-            if (status != Status.OK) {
-                throw new RuntimeException("Status is not what we expected");
-            }
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
-        }
-    }
-
-    /**
-     * Convert file from {@link MultipartFile} to {@link File}
-     *
-     * @param file that need to upload
-     * @return converted file
-     */
-    private static File convert(MultipartFile file) {
-        File convFile = new File(file.getOriginalFilename());
-
-        try (FileOutputStream fos = new FileOutputStream(convFile)) {
-            convFile.createNewFile();
-            fos.write(file.getBytes());
-            return convFile;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void sendFile(Socket socket, MultipartFile file) throws IOException {
-        try (DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream())) {
             byte[] bytes = (file.getBytes());
             dataOutputStream.write(bytes);
             dataOutputStream.flush();
+
+            Status status = (Status) in.readObject();
+            if (status != Status.OK) {
+                throw new RuntimeException("Status is not what we expected");
+            }
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
         }
     }
 }
