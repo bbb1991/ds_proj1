@@ -78,8 +78,10 @@ public class NameNodeService {
 
                             case GET:
                                 String fileName = (String) in.readObject(); // TODO
-//                                List<Chunk> f  = dbService.getFilesByName(fileName);
+                                List<Chunk> f  = dbService.getFilesByName(fileName);
                                 LOGGER.info("Getting filename: {}", fileName);
+                                out.writeObject(Status.OK);
+                                out.writeObject(f);
                                 break;
 
 

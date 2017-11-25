@@ -20,7 +20,7 @@
                 <tbody>
                 <#list files as file>
                 <tr>
-                    <td>${file.originalName}</td>
+                    <td><a href="/get/${file.originalName}">${file.originalName}</a></td>
                     <td>${file.datatype}</td>
                     <td>${file.fileSize}</td>
                 </tr>
@@ -30,6 +30,8 @@
 
 
         <#--<p>${files?size}</p>-->
+            <hr>
+            <h3 class="text-center">Create new folder</h3>
             <br>
             <form method="post" action="/mkdir">
                 <input type="text" placeholder="Folder name" name="folderName" required>
@@ -37,6 +39,8 @@
             </form>
 
             <br>
+            <hr>
+            <h3 class="text-center">Upload new file</h3>
             <form method="post" action="/upload" enctype="multipart/form-data">
                 <input type="file" name="file">
                 <input type="submit" value="Upload file">

@@ -62,6 +62,7 @@ public class DataNodeService {
                                 byte[] buffer = new byte[4096];
                                 long size = (long) in.readObject();
                                 String filename = (String) in.readObject();
+                                LOGGER.info("Saving file as: {}", workingPath + File.pathSeparator + filename);
                                 try (FileOutputStream fileOutputStream = new FileOutputStream(workingPath + File.pathSeparator + filename)) {
                                     int read;
                                     long totalRead = 0;
@@ -72,7 +73,7 @@ public class DataNodeService {
                                         LOGGER.info("Read {} bytes", totalRead);
                                         fileOutputStream.write(buffer, 0, read);
                                     }
-                                    LOGGER.info("File saved!");
+                                    LOGGER.info("File saved!"); // todo unlock file in namenode
                                 }
                                 out.writeObject(Status.OK);
                                 break;

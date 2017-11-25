@@ -5,5 +5,5 @@ public enum CommandType {
     HEARTBEAT, // type of command, that name node sends to data node to check, is data node alive or not
     GET, // download file/chunk of file from data node
     MKDIR, // create dir
-    UPLOAD_FILE, // upload file
+    UPLOAD_FILE, FILE_TYPE, // upload file
 }

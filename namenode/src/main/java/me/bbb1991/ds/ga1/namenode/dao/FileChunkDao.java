@@ -30,7 +30,7 @@ public class FileChunkDao {
 
     @SuppressWarnings("unchecked")
     public List<Chunk> getFileByName(String fileName) {
-        Query query =  entityManager.createQuery("select c from Chunk c where c.originalaName = :filename");
+        Query query =  entityManager.createQuery("select c from Chunk c where c.originalName = :filename");
         query.setParameter("filename", fileName);
 
         return query.getResultList();
