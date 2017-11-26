@@ -1,6 +1,9 @@
 package me.bbb1991.ds.ga1.client;
 
-import me.bbb1991.ds.ga1.common.model.*;
+import me.bbb1991.ds.ga1.common.model.Chunk;
+import me.bbb1991.ds.ga1.common.model.CommandType;
+import me.bbb1991.ds.ga1.common.model.DataNode;
+import me.bbb1991.ds.ga1.common.model.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -170,6 +173,46 @@ public class ClientManager {
             }
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
+        }
+    }
+
+    public File downloadFile(String host, int port, String fileName, long fileSize) {
+        try (Socket socket = new Socket(host, port);
+             DataInputStream dataInputStream = new DataInputStream(socket.getInputStream()); // to get a file
+             ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream()); // to get ojects, ex: status
+             ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream()); // send objects, ex: status
+        ) {
+            objectOutputStream.writeObject(CommandType.GET);
+            objectOutputStream.writeObject(fileName);
+
+            Status status = (Status) objectInputStream.readObject();
+            LOGGER.info("Status is: {}", status);
+
+            if (status != Status.OK) {
+                throw new RuntimeException("Status is not OK!");
+            }
+
+            File file = File.createTempFile(fileName, ".tmp");
+            try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
+
+                byte[] buffer = new byte[4096];
+                int read;
+                long totalRead = 0;
+                long remaining = fileSize;
+
+                while (((read = dataInputStream.read(buffer, 0, Math.min(buffer.length, (int) remaining))) > 0)) {
+                    totalRead += read;
+                    remaining -= read;
+                    LOGGER.info("Read {} bytes", totalRead);
+                    fileOutputStream.write(buffer, 0, read);
+
+                }
+                file.deleteOnExit();
+                return file;
+            }
+        } catch (Exception ex) {
+            LOGGER.error("Error while downloading file {}!", fileName, ex);
+            throw new RuntimeException(ex);
         }
     }
 }

@@ -62,8 +62,8 @@ public class DataNodeService {
                                 byte[] buffer = new byte[4096];
                                 long size = (long) in.readObject();
                                 String filename = (String) in.readObject();
-                                LOGGER.info("Saving file as: {}", workingPath + File.pathSeparator + filename);
-                                try (FileOutputStream fileOutputStream = new FileOutputStream(workingPath + File.pathSeparator + filename)) {
+                                LOGGER.info("Saving file as: {}", workingPath + File.separator + filename);
+                                try (FileOutputStream fileOutputStream = new FileOutputStream(workingPath + File.separator + filename)) {
                                     int read;
                                     long totalRead = 0;
                                     long remaining = size;
@@ -76,6 +76,30 @@ public class DataNodeService {
                                     LOGGER.info("File saved!"); // todo unlock file in namenode
                                 }
                                 out.writeObject(Status.OK);
+                                break;
+
+                            case GET:
+                                filename = (String) in.readObject();
+                                for (File file : new File(workingPath).listFiles()) {
+                                    LOGGER.info("Comparing file {} and {}", filename, file.getName());
+                                    if (filename.equalsIgnoreCase(file.getName())) {
+                                        LOGGER.info("Matched! Sending file to client");
+                                        out.writeObject(Status.OK);
+                                        try (FileInputStream fileInputStream = new FileInputStream(file);
+                                        DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
+                                        ) {
+                                            buffer = new byte[4096];
+
+                                            while (fileInputStream.read(buffer) > 0) {
+                                                dataOutputStream.write(buffer);
+                                            }
+                                            dataOutputStream.flush();
+                                        }
+                                        return;
+                                    }
+                                }
+
+                                out.writeObject(Status.FILE_NOT_FOUND);
                                 break;
 
                             default:

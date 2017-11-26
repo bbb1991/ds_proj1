@@ -8,5 +8,5 @@ package me.bbb1991.ds.ga1.common.model;
  */
 public enum Status {
     OK, // Request was successfully parsed
-    NO_DATANODE_AVAILABLE, // No datanode available for saving file
+    NO_DATANODE_AVAILABLE, FILE_NOT_FOUND, // No datanode available for saving file
 }

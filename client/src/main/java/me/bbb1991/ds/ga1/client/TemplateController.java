@@ -5,10 +5,15 @@ import me.bbb1991.ds.ga1.common.model.FileType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -30,7 +35,8 @@ public class TemplateController {
     /**
      * Return main HTML page
      *
-     * @param model variable for moving
+     * @param model  variable for moving
+     * @param folder
      * @return name of HTML page. Always will return <code>index</code>
      */
     @GetMapping("/")
@@ -80,8 +86,14 @@ public class TemplateController {
         return "redirect:/";
     }
 
+    /**
+     * Download file or open folder.
+     *
+     * @param name link name
+     * @return
+     */
     @RequestMapping(value = "/get/{name:.+}", method = RequestMethod.GET)
-    public String getFileOrFollowLink(@PathVariable("name") String name) {
+    public Object getFileOrFollowLink(@PathVariable("name") String name) {
         LOGGER.info("In getOrFollow method. Name is: {}", name);
 
         List<Chunk> files = clientManager.getFile(name);
@@ -94,9 +106,22 @@ public class TemplateController {
             return "redirect:/?folder=" + name;
         }
 
-        LOGGER.info("FILE: {}", files.get(0));
+        Chunk chunk = files.get(0);
 
-        return null;
+        File file = clientManager.downloadFile(chunk.getDataNodeHost(), chunk.getDataNodePort(), chunk.getFilename(), chunk.getFileSize());
+
+        LOGGER.info("File name {} and its size {}", file.getName(), file.length());
+
+        try {
+            InputStreamResource inputStreamResource = new InputStreamResource(new FileInputStream(file));
+            return ResponseEntity.ok()
+                    .contentLength(file.length())
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .header("Content-disposition", "attachment; filename=" + chunk.getOriginalName())
+                    .body(inputStreamResource);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Autowired
