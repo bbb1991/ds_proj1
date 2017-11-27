@@ -68,4 +68,8 @@ public class DBService {
     public long getIdByName(String name) {
         return fileChunkDao.getId(name);
     }
+
+    public void rename(String oldName, String newName, long id) {
+        fileChunkDao.rename(oldName, newName, id);
+    }
 }

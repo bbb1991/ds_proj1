@@ -138,6 +138,15 @@ public class TemplateController {
         return "redirect:/";
     }
 
+    @PostMapping("/rename")
+    public String rename(@RequestParam String oldName, @RequestParam String newName, @RequestParam("current-folder") long id) {
+        LOGGER.info("Renaming file from {} to {}", oldName, newName);
+
+        clientManager.renameFile(oldName, newName, id);
+
+        return "redirect:/";
+    }
+
     @Autowired
     public void setClientManager(ClientManager clientManager) {
         this.clientManager = clientManager;

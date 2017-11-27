@@ -135,6 +135,15 @@ public class NameNodeService {
                                 out.writeObject( dbService.getIdByName(name));
                                 break;
 
+                            case RENAME:
+                                String oldName = (String) in.readObject();
+                                String newName = (String) in.readObject();
+                                long id = (long) in.readObject();
+
+                                dbService.rename(oldName, newName, id);
+                                out.writeObject(Status.OK);
+                                break;
+
                             default:
                                 throw new RuntimeException("Not implemented!");
 

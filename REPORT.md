@@ -13,6 +13,20 @@ By default, this project uses **H2** database. But you can change it to another 
 To access data in runtime, after starting namenode go to [http://localhost:8000/console](http://localhost:8000) and
 change JDBC URL to ```jdbc:h2:./test```
 
+### Folder structure
+```text
+foo
+ |- bar
+ |- biz
+     |- file.txt
+```
+turns into:
+| id | name | parent_id |
+| --- | --- | --- |
+| 1 | foo | 0 |
+
+
+
 ## Datanode
 ### Short description
 This server stores files.

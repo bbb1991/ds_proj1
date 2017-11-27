@@ -51,4 +51,14 @@ public class FileChunkDao {
         Chunk chunk = (Chunk) query.getSingleResult();
         return chunk.getId();
     }
+
+    @Transactional
+    public void rename(String oldName, String newName, long id) {
+        Query query = entityManager.createQuery("update Chunk c set c.originalName=:newName where c.originalName=:oldName and c.parentId=:id")
+                .setParameter("oldName", oldName)
+                .setParameter("newName", newName)
+                .setParameter("id", id);
+
+        query.executeUpdate();
+    }
 }

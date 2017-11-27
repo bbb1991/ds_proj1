@@ -61,6 +61,17 @@
                 <input type="hidden" name="current-folder" value="${currentFolderId}">
                 <input type="submit" value="Remove file/folder" class="btn btn-danger">
             </form>
+
+            <br>
+            <hr>
+            <h3 class="text-center">Rename file/folder</h3>
+            <form method="post" action="/rename">
+                <input type="text" placeholder="Old file/folder name" name="oldName" required>
+                <input type="text" placeholder="New folder/file name" name="newName" required>
+                <input type="hidden" name="current-folder" value="${currentFolderId}">
+                <input type="submit" value="Rename" class="btn btn-success">
+            </form>
+
         </div>
     </div>
 </div>

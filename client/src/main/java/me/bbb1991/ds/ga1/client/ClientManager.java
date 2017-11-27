@@ -27,6 +27,7 @@ public class ClientManager {
      * @param path working directory
      * @return a list of files from {@param path}
      */
+    @SuppressWarnings("unchecked")
     public List<Chunk> getListOfFiles(String path) {
         LOGGER.info("Sending command to get list of files to name node");
         try (Socket socket = new Socket("localhost", 9001);
@@ -59,6 +60,7 @@ public class ClientManager {
      * @param file filename to download
      * @return in case if file was splitted into chunks will return list of chunks, else list with single element
      */
+    @SuppressWarnings("unchecked")
     public List<Chunk> getFile(String file) {
         LOGGER.info("Sending request to name node to get info about where we can download given file");
         try (Socket socket = new Socket("localhost", 9001);
@@ -259,5 +261,31 @@ public class ClientManager {
             LOGGER.error("ERROR!", e);
             throw new RuntimeException(e);
         }
+    }
+
+    public void renameFile(String oldName, String newName, long id) {
+
+        LOGGER.info("Renaming file from {} to {} in folder {}", oldName, newName, id);
+
+        try (Socket socket = new Socket("localhost", 9001);
+             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+             ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
+            out.writeObject(CommandType.RENAME);
+            out.writeObject(oldName);
+            out.writeObject(newName);
+            out.writeObject(id);
+            Status status = (Status) in.readObject();
+
+            LOGGER.info("Response status is: {}", status);
+
+            if (status != Status.OK) {
+                throw new RuntimeException();
+            }
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR!", e);
+            throw new RuntimeException(e);
+        }
+
     }
 }

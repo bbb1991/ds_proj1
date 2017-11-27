@@ -8,5 +8,5 @@ public enum CommandType {
     UPLOAD_FILE,
     FILE_TYPE,
     REMOVE,
-    GET_ID, // upload file
+    GET_ID, RENAME, // upload file
 }
