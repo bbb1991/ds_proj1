@@ -215,4 +215,25 @@ public class ClientManager {
             throw new RuntimeException(ex);
         }
     }
+
+    public void remove(String name) {
+        LOGGER.info("Sending request to remove");
+        try (Socket socket = new Socket("localhost", 9001);
+             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+             ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
+            out.writeObject(CommandType.REMOVE);
+            out.writeObject(name);
+            Status status = (Status) in.readObject();
+
+            LOGGER.info("Response status is: {}", status);
+
+            if (status != Status.OK) {
+                throw new RuntimeException();
+            }
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR!", e);
+            throw new RuntimeException(e);
+        }
+    }
 }

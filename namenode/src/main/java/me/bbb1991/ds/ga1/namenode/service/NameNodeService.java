@@ -126,6 +126,13 @@ public class NameNodeService {
                                 out.writeObject(dataNode);
                                 out.writeObject(filename);
                                 break;
+                            case REMOVE:
+                                String name = (String) in.readObject();
+                                LOGGER.info("Creating folder with name: {}", name);
+
+                                dbService.removeObject(name);
+                                out.writeObject(Status.OK);
+                                break;
 
                             default:
                                 throw new RuntimeException("Not implemented!");

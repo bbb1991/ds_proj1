@@ -9,6 +9,8 @@
     <div class="row">
         <div class="col-md-12">
             <h1 class="text-center">Index page</h1>
+        <#if files??>
+
             <table class="table table-hover">
                 <thead>
                 <tr>
@@ -18,15 +20,18 @@
                 </tr>
                 </thead>
                 <tbody>
-                <#list files as file>
-                <tr>
-                    <td><a href="/get/${file.originalName}">${file.originalName}</a></td>
-                    <td>${file.datatype}</td>
-                    <td>${file.fileSize}</td>
-                </tr>
-                </#list>
+                    <#list files as file>
+                    <tr>
+                        <td><a href="/get/${file.originalName}">${file.originalName}</a></td>
+                        <td>${file.datatype}</td>
+                        <td>${file.fileSize}</td>
+                    </tr>
+                    </#list>
                 </tbody>
             </table>
+        <#else>
+            <h3>No files available to display!</h3>
+        </#if>
 
 
         <#--<p>${files?size}</p>-->
@@ -35,6 +40,7 @@
             <br>
             <form method="post" action="/mkdir">
                 <input type="text" placeholder="Folder name" name="folderName" required>
+                <input type="hidden" name="current-folder" value="${currentFolderId}">
                 <input type="submit" value="Create folder">
             </form>
 
@@ -42,13 +48,23 @@
             <hr>
             <h3 class="text-center">Upload new file</h3>
             <form method="post" action="/upload" enctype="multipart/form-data">
+                <input type="hidden" name="current-folder" value="${currentFolderId}">
                 <input type="file" name="file">
                 <input type="submit" value="Upload file">
+            </form>
+
+            <br>
+            <hr>
+            <h3 class="text-center">Remove file/folder</h3>
+            <form method="post" action="/remove">
+                <input type="text" placeholder="File or folder name" name="name" required>
+                <input type="hidden" name="current-folder" value="${currentFolderId}">
+                <input type="submit" value="Remove file/folder">
             </form>
         </div>
     </div>
 </div>
-<script src="https://code.jquery.com/jquery-3.2.1.min.js"
+<script src="//code.jquery.com/jquery-3.2.1.min.js"
         integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
 </body>
 </html>

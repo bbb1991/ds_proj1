@@ -3,7 +3,7 @@
          updateCheck="true"
          monitoring="autodetect"
          dynamicConfig="true">
-    <cache name="instruments"
+    <cache name="files"
            maxElementsInMemory="100"
            ethernal="false"
            overflowToDisk="false"

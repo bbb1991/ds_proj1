@@ -44,11 +44,14 @@ public class TemplateController {
 
         LOGGER.info("Incoming message for for get incoming message.");
 
+        LOGGER.info("path is: {}", folder.orElse("/"));
+
         List<Chunk> files = clientManager.getListOfFiles(folder.orElse("/"));
 
         LOGGER.info("Got result: {}", files);
 
         model.put("files", files);
+        model.put("currentFolderId", files.size() > 0 ? files.get(0).getParentId() : 0);
         return "index";
     }
 
@@ -122,6 +125,16 @@ public class TemplateController {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @PostMapping("/remove")
+    public String removeFileOrFolder(@RequestParam String name) {
+
+        LOGGER.info("Incoming message for removing. name is: {}", name);
+
+        clientManager.remove(name);
+
+        return "redirect:/";
     }
 
     @Autowired

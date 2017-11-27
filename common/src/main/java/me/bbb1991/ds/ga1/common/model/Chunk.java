@@ -220,5 +220,10 @@ public class Chunk implements Serializable {
             Chunk.this.setSeqNo(seqNo);
             return this;
         }
+
+        public Builder setParentId(long id) {
+            Chunk.this.setParentId(id);
+            return this;
+        }
     }
 }

@@ -1,13 +1,16 @@
 package me.bbb1991.ds.ga1.namenode.service;
 
 import me.bbb1991.ds.ga1.common.model.Chunk;
+import me.bbb1991.ds.ga1.common.model.FileType;
 import me.bbb1991.ds.ga1.namenode.dao.FileChunkDao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
 import java.util.List;
 
 /**
@@ -60,5 +63,9 @@ public class DBService {
         LOGGER.info("Object {} seems to be saved. Let's try!", chunk);
         Chunk savedChunk = fileChunkDao.getAllFilesOnFolder("/").get(0);
         LOGGER.info("Check is saved: {}", savedChunk);
+    }
+
+    public void removeObject(String name) {
+        fileChunkDao.removeObject(name);
     }
 }
