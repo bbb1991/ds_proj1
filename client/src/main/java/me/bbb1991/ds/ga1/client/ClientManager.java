@@ -3,6 +3,7 @@ package me.bbb1991.ds.ga1.client;
 import me.bbb1991.ds.ga1.common.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -20,6 +21,12 @@ import java.util.List;
 public class ClientManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ClientManager.class);
+
+    @Value("namenode.host")
+    private String namenodeHost;
+
+    @Value("namenode.port")
+    private int namenodePort;
 
     /**
      * Get list of files from namenode
@@ -92,7 +99,7 @@ public class ClientManager {
      *
      * @param folderName name of new folder
      */
-    public void mkdir(String folderName, long parentId) { // TODO add current path
+    public void mkdir(String folderName, long parentId) {
         // TODO change hardcoded address to config
         LOGGER.info("Sending request to create folder");
         try (Socket socket = new Socket("localhost", 9001);

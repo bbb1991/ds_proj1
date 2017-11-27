@@ -70,14 +70,14 @@ public class NameNodeService {
                                 LOGGER.info("Getting path info");
                                 String path = (String) in.readObject();
                                 LOGGER.info("Got path info. Forming answer");
-                                List<Chunk> files = dbService.getAllFiles(path); // TODO various folder logic
+                                List<Chunk> files = dbService.getAllFiles(path);
                                 LOGGER.info("Files: {}", files.size());
                                 out.writeObject(Status.OK);
                                 out.writeObject(files);
                                 break;
 
                             case GET:
-                                String fileName = (String) in.readObject(); // TODO
+                                String fileName = (String) in.readObject();
                                 List<Chunk> f  = dbService.getFilesByName(fileName);
                                 LOGGER.info("Getting filename: {}", fileName);
                                 out.writeObject(Status.OK);
