@@ -23,6 +23,12 @@ public class DataNodeService {
     @Value("${datanode.working_dir}")
     private String workingPath;
 
+    @Value("${namenode.port}")
+    private int namenodePort;
+
+    @Value("${namenode.host}")
+    private String namenodeHost;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(DataNode.class);
 
     /**
@@ -32,9 +38,11 @@ public class DataNodeService {
      */
     public void notifyNameNode() {
         LOGGER.info("Sending hello message to namenode");
-        try (Socket socket = new Socket("localhost", 9002);
-             ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream())) {
-            objectOutputStream.writeObject(new DataNode("localhost", 9090));
+        try (Socket socket = new Socket(namenodeHost, namenodePort);
+             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream())) {
+            System.out.println(socket.getInputStream().read());
+            out.writeObject(CommandType.HELLO);
+            out.writeObject(new DataNode("localhost", 9090));
         } catch (IOException e) {
             LOGGER.error("Error while sending hello message to namenode!", e);
             throw new RuntimeException(e);
@@ -56,7 +64,7 @@ public class DataNodeService {
                          DataInputStream dataInputStream = new DataInputStream(socket.getInputStream());
                     ) {
                         CommandType command = (CommandType) in.readObject();
-                        LOGGER.info("Got container type: {}", command);
+                        LOGGER.info("Got command: {}", command);
                         switch (command) {
                             case UPLOAD_FILE:
                                 byte[] buffer = new byte[4096];

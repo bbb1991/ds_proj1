@@ -7,6 +7,8 @@ public enum CommandType {
     MKDIR, // create dir
     UPLOAD_FILE,
     FILE_TYPE,
-    REMOVE,
-    GET_ID, RENAME, // upload file
+    HELLO,
+    REMOVE, // remove file/folder
+    GET_ID, // request file ID.
+    RENAME, // upload file
 }

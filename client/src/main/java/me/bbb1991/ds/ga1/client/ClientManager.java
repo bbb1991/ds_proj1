@@ -22,10 +22,10 @@ public class ClientManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ClientManager.class);
 
-    @Value("namenode.host")
+    @Value("${namenode.host}")
     private String namenodeHost;
 
-    @Value("namenode.port")
+    @Value("${namenode.port}")
     private int namenodePort;
 
     /**
@@ -37,7 +37,7 @@ public class ClientManager {
     @SuppressWarnings("unchecked")
     public List<Chunk> getListOfFiles(String path) {
         LOGGER.info("Sending command to get list of files to name node");
-        try (Socket socket = new Socket("localhost", 9001);
+        try (Socket socket = new Socket(namenodeHost, namenodePort);
              ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
              ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
             out.writeObject(CommandType.LIST_FILES);
@@ -70,7 +70,7 @@ public class ClientManager {
     @SuppressWarnings("unchecked")
     public List<Chunk> getFile(String file) {
         LOGGER.info("Sending request to name node to get info about where we can download given file");
-        try (Socket socket = new Socket("localhost", 9001);
+        try (Socket socket = new Socket(namenodeHost, namenodePort);
              ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
              ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
             out.writeObject(CommandType.GET);
@@ -102,7 +102,7 @@ public class ClientManager {
     public void mkdir(String folderName, long parentId) {
         // TODO change hardcoded address to config
         LOGGER.info("Sending request to create folder");
-        try (Socket socket = new Socket("localhost", 9001);
+        try (Socket socket = new Socket(namenodeHost, namenodePort);
              ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
              ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
             Chunk chunk = Chunk.builder().setDatatype(FileType.FOLDER).setOriginalName(folderName).setParentId(parentId).build();
@@ -128,8 +128,7 @@ public class ClientManager {
      * @param multipartFile to upload to remote server
      */
     public void uploadFile(MultipartFile multipartFile, long parentId) {
-        // todo change hardcoded address
-        try (Socket socket = new Socket("localhost", 9001);
+        try (Socket socket = new Socket(namenodeHost, namenodePort);
              ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
              ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
             // send request to name node
@@ -182,7 +181,8 @@ public class ClientManager {
                 throw new RuntimeException("Status is not what we expected");
             }
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+            LOGGER.error("ERROR!", e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -228,7 +228,7 @@ public class ClientManager {
 
     public void remove(String name) {
         LOGGER.info("Sending request to remove");
-        try (Socket socket = new Socket("localhost", 9001);
+        try (Socket socket = new Socket(namenodeHost, namenodePort);
              ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
              ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
             out.writeObject(CommandType.REMOVE);
@@ -249,7 +249,7 @@ public class ClientManager {
 
     public long getFileId(String s) {
         LOGGER.info("Sending request to remove");
-        try (Socket socket = new Socket("localhost", 9001);
+        try (Socket socket = new Socket(namenodeHost, namenodePort);
              ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
              ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
             out.writeObject(CommandType.GET_ID);
@@ -274,7 +274,7 @@ public class ClientManager {
 
         LOGGER.info("Renaming file from {} to {} in folder {}", oldName, newName, id);
 
-        try (Socket socket = new Socket("localhost", 9001);
+        try (Socket socket = new Socket(namenodeHost, namenodePort);
              ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
              ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
             out.writeObject(CommandType.RENAME);

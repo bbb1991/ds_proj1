@@ -5,6 +5,7 @@ import me.bbb1991.ds.ga1.common.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
@@ -27,41 +28,18 @@ public class NameNodeService {
 
     private List<DataNode> dataNodes;
 
-
-    public void openSocketToDataNode() {
-        final ServerSocket serverSocket;
-        try {
-            serverSocket = new ServerSocket(9002);
-            new Thread(() -> {
-                while (true) {
-                    try (Socket socket = serverSocket.accept();
-                         ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream())
-                    ) {
-                        DataNode dataNode = (DataNode) objectInputStream.readObject();
-                        LOGGER.info("New Data Node came up!: {}", dataNode);
-                        dataNodes.add(dataNode);
-                        LOGGER.info("{}", dataNode);
-                    } catch (Exception e) {
-                        LOGGER.error("ERROR!", e);
-                        throw new RuntimeException(e);
-                    }
-                }
-
-            }).start();
-        } catch (IOException e) {
-            LOGGER.error("ERROR!", e);
-        }
-    }
+    @Value("${namenode.port}")
+    private int namenodePort;
 
     public void openSocketToClient() {
         final ServerSocket serverSocket;
         try {
-            serverSocket = new ServerSocket(9001);
+            serverSocket = new ServerSocket(namenodePort);
             new Thread(() -> {
                 while (true) {
                     try (Socket socket = serverSocket.accept();
                          ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-                         ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+                         ObjectInputStream in = new ObjectInputStream(socket.getInputStream())
                     ) {
                         CommandType command = (CommandType) in.readObject();
                         LOGGER.info("Got command from client: {}", command);
@@ -118,6 +96,7 @@ public class NameNodeService {
                                 out.writeObject(dataNode);
                                 out.writeObject(filename);
                                 break;
+
                             case REMOVE:
                                 String name = (String) in.readObject();
                                 LOGGER.info("Creating folder with name: {}", name);
@@ -142,6 +121,13 @@ public class NameNodeService {
 
                                 dbService.rename(oldName, newName, id);
                                 out.writeObject(Status.OK);
+                                break;
+
+                            case HELLO:
+                                dataNode = (DataNode) in.readObject();
+                                LOGGER.info("New Data Node came up!: {}", dataNode);
+                                dataNodes.add(dataNode);
+                                LOGGER.info("{}", dataNode);
                                 break;
 
                             default:
