@@ -17,7 +17,7 @@ public class FileChunkDao {
     @SuppressWarnings("unchecked")
     public List<Chunk> getAllFilesOnFolder(String folder) {
         long parentId = this.getId(folder);
-        Query query = entityManager.createQuery("select c from Chunk c where c.parentId = :parentId"); // TODO filter by folder
+        Query query = entityManager.createQuery("select c from Chunk c where c.parentId = :parentId");
         query.setParameter("parentId", parentId);
         return query.getResultList();
     }

@@ -51,7 +51,8 @@ public class TemplateController {
         LOGGER.info("Got result: {}", files);
 
         model.put("files", files);
-        model.put("currentFolderId", files.size() > 0 ? files.get(0).getParentId() : 0);
+        long id = clientManager.getFileId(folder.orElse("/"));
+        model.put("currentFolderId", id);
         return "index";
     }
 
@@ -63,11 +64,11 @@ public class TemplateController {
      * @see TemplateController#index(Map, Optional)
      */
     @PostMapping("/mkdir")
-    public String mkdir(@RequestParam String folderName) {
+    public String mkdir(@RequestParam String folderName, @RequestParam("current-folder") long currentFolder) {
 
-        LOGGER.info("Incoming message for creating folder. Folder name is: {}", folderName);
+        LOGGER.info("Incoming message for creating folder. Folder name is: {} and current folder is: {}", folderName, currentFolder);
 
-        clientManager.mkdir(folderName);
+        clientManager.mkdir(folderName, currentFolder);
 
         return "redirect:/";
     }

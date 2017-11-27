@@ -86,10 +86,10 @@ public class NameNodeService {
 
 
                             case MKDIR:
-                                String folderName = (String) in.readObject();
-                                LOGGER.info("Creating folder with name: {}", folderName);
+                                Chunk chunk = (Chunk) in.readObject();
+                                LOGGER.info("Creating folder with name: {}", chunk.getOriginalName());
 
-                                dbService.saveObject(Chunk.builder().setOriginalName(folderName).setDatatype(FileType.FOLDER).build());
+                                dbService.saveObject(chunk);
                                 out.writeObject(Status.OK);
                                 break;
 
@@ -109,7 +109,7 @@ public class NameNodeService {
                                 String filename = Utils.getFileName();
                                 LOGGER.info("File name is: {}", filename);
 
-                                Chunk chunk = Chunk.builder()
+                                chunk = Chunk.builder()
                                         .setDatatype(FileType.FILE)
                                         .setOriginalName(originalName)
                                         .setFileName(filename)
@@ -132,6 +132,15 @@ public class NameNodeService {
 
                                 dbService.removeObject(name);
                                 out.writeObject(Status.OK);
+                                break;
+
+                            case GET_ID:
+                                name = (String) in.readObject();
+                                LOGGER.info("Getting ID by name: {}", name);
+
+
+                                out.writeObject(Status.OK);
+                                out.writeObject( dbService.getIdByName(name));
                                 break;
 
                             default:

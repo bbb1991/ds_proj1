@@ -1,9 +1,6 @@
 package me.bbb1991.ds.ga1.client;
 
-import me.bbb1991.ds.ga1.common.model.Chunk;
-import me.bbb1991.ds.ga1.common.model.CommandType;
-import me.bbb1991.ds.ga1.common.model.DataNode;
-import me.bbb1991.ds.ga1.common.model.Status;
+import me.bbb1991.ds.ga1.common.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -93,14 +90,15 @@ public class ClientManager {
      *
      * @param folderName name of new folder
      */
-    public void mkdir(String folderName) { // TODO add current path
+    public void mkdir(String folderName, long parentId) { // TODO add current path
         // TODO change hardcoded address to config
         LOGGER.info("Sending request to create folder");
         try (Socket socket = new Socket("localhost", 9001);
              ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
              ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
+            Chunk chunk = Chunk.builder().setDatatype(FileType.FOLDER).setOriginalName(folderName).setParentId(parentId).build();
             out.writeObject(CommandType.MKDIR);
-            out.writeObject(folderName);
+            out.writeObject(chunk);
             Status status = (Status) in.readObject();
 
             LOGGER.info("Response status is: {}", status);
@@ -230,6 +228,29 @@ public class ClientManager {
             if (status != Status.OK) {
                 throw new RuntimeException();
             }
+
+        } catch (Exception e) {
+            LOGGER.error("ERROR!", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    public long getFileId(String s) {
+        LOGGER.info("Sending request to remove");
+        try (Socket socket = new Socket("localhost", 9001);
+             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+             ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
+            out.writeObject(CommandType.GET_ID);
+            out.writeObject(s);
+            Status status = (Status) in.readObject();
+
+            LOGGER.info("Response status is: {}", status);
+
+            if (status != Status.OK) {
+                throw new RuntimeException();
+            }
+
+            return (long) in.readObject();
 
         } catch (Exception e) {
             LOGGER.error("ERROR!", e);
