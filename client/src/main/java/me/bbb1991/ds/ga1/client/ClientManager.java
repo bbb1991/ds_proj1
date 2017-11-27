@@ -118,17 +118,20 @@ public class ClientManager {
      *
      * @param multipartFile to upload to remote server
      */
-    public void uploadFile(MultipartFile multipartFile) {
+    public void uploadFile(MultipartFile multipartFile, long parentId) {
         // todo change hardcoded address
-        // todo add logic to work with folders
         try (Socket socket = new Socket("localhost", 9001);
              ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
              ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
             // send request to name node
+            Chunk chunk = Chunk.builder().setFileSize(multipartFile.getSize())
+                    .setOriginalName(multipartFile.getOriginalFilename())
+                    .setParentId(parentId)
+                    .setSeqNo(1)
+                    .setDatatype(FileType.FILE)
+                    .build();
             out.writeObject(CommandType.UPLOAD_FILE);
-            out.writeObject(multipartFile.getSize());
-            out.writeObject(multipartFile.getOriginalFilename());
-//            out.writeObject(convert(file));
+            out.writeObject(chunk);
             Status status = (Status) in.readObject();
             LOGGER.info("Uploading multipart file: {}", multipartFile.getOriginalFilename());
 

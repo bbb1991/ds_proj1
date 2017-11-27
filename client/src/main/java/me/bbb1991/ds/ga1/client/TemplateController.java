@@ -81,11 +81,11 @@ public class TemplateController {
      * @see TemplateController#index(Map, Optional)
      */
     @PostMapping("/upload")
-    public String upload(@RequestParam MultipartFile file) {
+    public String upload(@RequestParam MultipartFile file, @RequestParam("current-folder") long currentFolder) {
 
         LOGGER.info("Incoming request for uploading file: {}", file);
 
-        clientManager.uploadFile(file);
+        clientManager.uploadFile(file, currentFolder);
 
         return "redirect:/";
     }

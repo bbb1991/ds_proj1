@@ -41,7 +41,7 @@
             <form method="post" action="/mkdir">
                 <input type="text" placeholder="Folder name" name="folderName" required>
                 <input type="hidden" name="current-folder" value="${currentFolderId}">
-                <input type="submit" value="Create folder">
+                <input type="submit" value="Create folder" class="btn btn-success">
             </form>
 
             <br>
@@ -50,7 +50,7 @@
             <form method="post" action="/upload" enctype="multipart/form-data">
                 <input type="hidden" name="current-folder" value="${currentFolderId}">
                 <input type="file" name="file">
-                <input type="submit" value="Upload file">
+                <input type="submit" value="Upload file" class="btn btn-success">
             </form>
 
             <br>
@@ -59,7 +59,7 @@
             <form method="post" action="/remove">
                 <input type="text" placeholder="File or folder name" name="name" required>
                 <input type="hidden" name="current-folder" value="${currentFolderId}">
-                <input type="submit" value="Remove file/folder">
+                <input type="submit" value="Remove file/folder" class="btn btn-danger">
             </form>
         </div>
     </div>

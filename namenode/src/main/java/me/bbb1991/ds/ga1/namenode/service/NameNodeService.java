@@ -94,10 +94,8 @@ public class NameNodeService {
                                 break;
 
                             case UPLOAD_FILE:
-                                long fileSize = (long) in.readObject(); // todo do something with file size
-                                String originalName = (String) in.readObject(); // todo do something with file size
-
-                                LOGGER.info("Original name is: {}", originalName);
+                                chunk = (Chunk) in.readObject();
+                                LOGGER.info("Original name is: {}", chunk.getOriginalName());
                                 if (dataNodes.isEmpty()) {
                                     LOGGER.warn("No data node available to save file!");
                                     out.writeObject(Status.NO_DATANODE_AVAILABLE);
@@ -109,16 +107,10 @@ public class NameNodeService {
                                 String filename = Utils.getFileName();
                                 LOGGER.info("File name is: {}", filename);
 
-                                chunk = Chunk.builder()
-                                        .setDatatype(FileType.FILE)
-                                        .setOriginalName(originalName)
-                                        .setFileName(filename)
-                                        .setLocked(true)
-                                        .setFileSize(fileSize)
-                                        .setSeqNo(1)
-                                        .setDataNodeHost(dataNode.getHost())
-                                        .setDataNodePort(dataNode.getCommandPort())
-                                        .build();
+                                chunk.setFilename(filename);
+                                chunk.setLocked(true);
+                                chunk.setDataNodeHost(dataNode.getHost());
+                                        chunk.setDataNodePort(dataNode.getCommandPort());
 
                                 dbService.saveObject(chunk);
 
