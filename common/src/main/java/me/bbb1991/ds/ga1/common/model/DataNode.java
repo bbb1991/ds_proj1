@@ -2,6 +2,7 @@ package me.bbb1991.ds.ga1.common.model;
 
 import com.google.gson.Gson;
 
+import javax.persistence.*;
 import java.io.Serializable;
 
 /**
@@ -10,21 +11,29 @@ import java.io.Serializable;
  * @author Bagdat Bimaganbetov
  * @author b.bimaganbetov@innopolis.ru
  */
+@Entity
 public class DataNode implements Serializable {
+
+    @Id
+    @GeneratedValue
+    private long id;
 
     /**
      * Data node hostname
      */
+    @Column
     private String host;
 
     /**
      * Data node port
      */
+    @Column
     private int port;
 
     /**
      * Marker that shows is datanode alive or not. Used by namenode for deleting dead datanodes from list
      */
+    @Transient
     private boolean alive;
 
     public DataNode() {
@@ -67,5 +76,13 @@ public class DataNode implements Serializable {
 
     public void setAlive(boolean alive) {
         this.alive = alive;
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
     }
 }

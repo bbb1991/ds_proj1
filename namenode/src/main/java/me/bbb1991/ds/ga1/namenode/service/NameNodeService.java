@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -14,24 +13,16 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
 public class NameNodeService {
 
-    public NameNodeService() {
-        dataNodes = Collections.synchronizedList(new ArrayList<>());
-    }
-
     private static final Logger LOGGER = LoggerFactory.getLogger(NameNodeService.class);
 
     private DBService dbService;
-
-    private List<DataNode> dataNodes;
 
     @Value("${namenode.port}")
     private int namenodePort;
@@ -45,10 +36,12 @@ public class NameNodeService {
                     e.printStackTrace();
                 }
 
-                if (dataNodes.isEmpty()) {
-                    LOGGER.info("No datanode available, so sad :(");
+                if (dbService.isDataNodeDoesNotExist()) {
+                    LOGGER.debug("No datanode available, so sad :(");
                     continue;
                 }
+
+                List<DataNode> dataNodes = dbService.getAllDataNodes();
 
                 dataNodes.stream()
                         .peek(dataNode -> {
@@ -64,8 +57,12 @@ public class NameNodeService {
                             }
 
                         })
-                        .forEach(dataNode -> LOGGER.info("Datanode: {}:{} is {}", dataNode.getHost(), dataNode.getPort(), dataNode.isAlive() ? "alive" : "dead"));
-                dataNodes.removeIf(dataNode -> !dataNode.isAlive());
+                        .filter(DataNode::isAlive)
+                        .forEach(dataNode -> {
+                            LOGGER.info("Datanode: {}:{} is dead. Removing from DB");
+                            dbService.removeDataNode(dataNode);
+
+                        });
             }
         }).start();
     }
@@ -80,6 +77,7 @@ public class NameNodeService {
                          ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
                          ObjectInputStream in = new ObjectInputStream(socket.getInputStream())
                     ) {
+                        List<DataNode> dataNodes = dbService.getAllDataNodes();
                         CommandType command = (CommandType) in.readObject();
                         LOGGER.info("Got command from client: {}", command);
                         switch (command) {
@@ -167,7 +165,11 @@ public class NameNodeService {
                                              ObjectInputStream objectInputStream = new ObjectInputStream(socket1.getInputStream());
                                         ) {
                                             objectOutputStream.writeObject(CommandType.REMOVE);
-                                            objectOutputStream.writeObject(files.stream().filter(file -> !(file.getDatatype() == FileType.FOLDER)).collect(Collectors.toList()));
+                                            objectOutputStream.writeObject(
+                                                    files.stream()
+                                                            .filter(file -> !(file.getDatatype() == FileType.FOLDER))
+                                                            .collect(Collectors.toList())
+                                            );
 
                                             Status status = (Status) objectInputStream.readObject();
 
@@ -206,7 +208,7 @@ public class NameNodeService {
                             case HELLO:
                                 dataNode = (DataNode) in.readObject();
                                 LOGGER.info("New Data Node came up!: {}", dataNode);
-                                dataNodes.add(dataNode);
+                                dbService.addDataNode(dataNode);
                                 LOGGER.info("{}", dataNode);
                                 break;
 
@@ -229,10 +231,5 @@ public class NameNodeService {
     @Autowired
     public void setDbService(DBService dbService) {
         this.dbService = dbService;
-    }
-
-    @Bean
-    public List<DataNode> getDataNodes() {
-        return dataNodes;
     }
 }

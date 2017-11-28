@@ -1,6 +1,8 @@
 package me.bbb1991.ds.ga1.namenode.service;
 
 import me.bbb1991.ds.ga1.common.model.Chunk;
+import me.bbb1991.ds.ga1.common.model.DataNode;
+import me.bbb1991.ds.ga1.namenode.dao.DataNodeDao;
 import me.bbb1991.ds.ga1.namenode.dao.FileChunkDao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +25,8 @@ public class DBService {
 
     private FileChunkDao fileChunkDao;
 
+    private DataNodeDao dataNodeDao;
+
 
     /**
      * Get files and folders in given {@param folder}
@@ -32,6 +36,11 @@ public class DBService {
      */
     public List<Chunk> getAllFiles(String folder) {
         return fileChunkDao.getAllFilesOnFolder(folder);
+    }
+
+    @Autowired
+    public void setDataNodeDao(DataNodeDao dataNodeDao) {
+        this.dataNodeDao = dataNodeDao;
     }
 
     @Autowired
@@ -79,5 +88,21 @@ public class DBService {
 
     private void removeObject(Chunk e) {
         fileChunkDao.removeObject(e);
+    }
+
+    public boolean isDataNodeDoesNotExist() {
+        return dataNodeDao.isTableEmpty();
+    }
+
+    public List<DataNode> getAllDataNodes() {
+        return dataNodeDao.getAll();
+    }
+
+    public void addDataNode(DataNode dataNode) {
+        dataNodeDao.save(dataNode);
+    }
+
+    public void removeDataNode(DataNode dataNode) {
+        dataNodeDao.remove(dataNode);
     }
 }
