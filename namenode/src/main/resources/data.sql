@@ -1,1 +1,1 @@
-insert into chunk (datatype, locked, original_name, DATA_NODE_PORT, FILE_SIZE, parent_id, seq_no) VALUES (1, FALSE , '/',  0, 0, 0, 1);
+insert into chunk (datatype, locked, original_name, FILE_SIZE, parent_id, seq_no) VALUES (1, FALSE , '/',  0, 0, 1);

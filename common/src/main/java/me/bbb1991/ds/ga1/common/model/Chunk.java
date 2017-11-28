@@ -40,13 +40,13 @@ public class Chunk implements Serializable {
     /**
      * Hostname, where client can download file
      */
-    @Column
+    @Transient
     private String dataNodeHost;
 
     /**
      * Which port listens datanode
      */
-    @Column
+    @Transient
     private int dataNodePort;
 
     /**
@@ -71,7 +71,7 @@ public class Chunk implements Serializable {
     private long parentId;
 
     /**
-     * Is file available for access or not. File might be locked when file is processing, for examlpe,
+     * Is file available for access or not. File might be locked when file is processing, for example,
      * moving or uploading.
      */
     @Column

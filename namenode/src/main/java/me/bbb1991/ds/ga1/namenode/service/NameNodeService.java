@@ -20,6 +20,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class NameNodeService {
@@ -95,8 +96,21 @@ public class NameNodeService {
                                 break;
 
                             case GET:
+                                if (dataNodes.isEmpty()) {
+                                    LOGGER.warn("No datanode available to serve client!");
+                                    out.writeObject(Status.NO_DATANODE_AVAILABLE);
+                                    break;
+                                }
+
+
                                 String fileName = (String) in.readObject();
                                 List<Chunk> f = dbService.getFilesByName(fileName);
+                                f = f.stream()
+                                        .peek(c -> {
+                                            c.setDataNodeHost(dataNodes.get(0).getHost());
+                                            c.setDataNodePort(dataNodes.get(0).getPort());
+                                        })
+                                        .collect(Collectors.toList());
                                 LOGGER.info("Getting filename: {}", fileName);
                                 out.writeObject(Status.OK);
                                 out.writeObject(f);
@@ -127,8 +141,6 @@ public class NameNodeService {
 
                                 chunk.setFilename(filename);
                                 chunk.setLocked(true);
-                                chunk.setDataNodeHost(dataNode.getHost());
-                                chunk.setDataNodePort(dataNode.getPort());
 
                                 dbService.saveObject(chunk);
 

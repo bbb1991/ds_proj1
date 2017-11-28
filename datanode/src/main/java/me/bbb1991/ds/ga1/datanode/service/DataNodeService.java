@@ -95,9 +95,11 @@ public class DataNodeService {
 
                             case GET:
                                 filename = (String) in.readObject();
+                                boolean isFileFound = false;
                                 for (File file : new File(workingPath).listFiles()) {
                                     LOGGER.info("Comparing file {} and {}", filename, file.getName());
                                     if (filename.equalsIgnoreCase(file.getName())) {
+                                        isFileFound = true;
                                         LOGGER.info("Matched! Sending file to client");
                                         out.writeObject(Status.OK);
                                         try (FileInputStream fileInputStream = new FileInputStream(file);
@@ -110,11 +112,13 @@ public class DataNodeService {
                                             }
                                             dataOutputStream.flush();
                                         }
-                                        return;
+                                        break;
                                     }
                                 }
 
-                                out.writeObject(Status.FILE_NOT_FOUND);
+                                if (!isFileFound) {
+                                    out.writeObject(Status.FILE_NOT_FOUND);
+                                }
                                 break;
 
                             case HEARTBEAT:
