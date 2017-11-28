@@ -1,6 +1,7 @@
 package me.bbb1991.ds.ga1.datanode.service;
 
 import me.bbb1991.ds.ga1.common.Utils;
+import me.bbb1991.ds.ga1.common.model.Chunk;
 import me.bbb1991.ds.ga1.common.model.CommandType;
 import me.bbb1991.ds.ga1.common.model.DataNode;
 import me.bbb1991.ds.ga1.common.model.Status;
@@ -14,6 +15,7 @@ import javax.annotation.PostConstruct;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.List;
 
 /**
  * Class with various methods that works with remote servers.
@@ -122,6 +124,22 @@ public class DataNodeService {
                                 break;
 
                             case HEARTBEAT:
+                                out.writeObject(Status.OK);
+                                break;
+
+                            case REMOVE:
+                                List<Chunk> files = (List<Chunk>) in.readObject();
+
+                                files.forEach(e -> {
+                                    String name = e.getFilename();
+                                    for (File file : new File(workingPath).listFiles()) {
+
+                                        if (name.equalsIgnoreCase(file.getName())) {
+                                            LOGGER.info("Is file {} deleted? {}", file.getName(), file.delete());
+                                        }
+                                    }
+                                });
+
                                 out.writeObject(Status.OK);
                                 break;
 

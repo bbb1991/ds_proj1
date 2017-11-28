@@ -23,6 +23,7 @@ public class Chunk implements Serializable {
     /**
      * In what name user stored file. For example: file.txt
      */
+    @Column
     private String originalName;
 
     /**

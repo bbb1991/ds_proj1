@@ -61,15 +61,23 @@ public class DBService {
         LOGGER.info("Check is saved: {}", chunk);
     }
 
-    public void removeObject(String name) {
-        fileChunkDao.removeObject(name);
-    }
-
     public long getIdByName(String name) {
         return fileChunkDao.getId(name);
     }
 
     public void rename(String oldName, String newName, long id) {
         fileChunkDao.rename(oldName, newName, id);
+    }
+
+    public List<Chunk> getAllChildsById(long id) {
+        return fileChunkDao.getAllChildsById(id);
+    }
+
+    public void removeListOfObjects(List<Chunk> files) {
+        files.forEach(this::removeObject);
+    }
+
+    private void removeObject(Chunk e) {
+        fileChunkDao.removeObject(e);
     }
 }
