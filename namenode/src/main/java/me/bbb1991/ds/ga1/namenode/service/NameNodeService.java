@@ -1,7 +1,10 @@
 package me.bbb1991.ds.ga1.namenode.service;
 
 import me.bbb1991.ds.ga1.common.Utils;
-import me.bbb1991.ds.ga1.common.model.*;
+import me.bbb1991.ds.ga1.common.model.Chunk;
+import me.bbb1991.ds.ga1.common.model.CommandType;
+import me.bbb1991.ds.ga1.common.model.DataNode;
+import me.bbb1991.ds.ga1.common.model.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,17 +12,20 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Component
 public class NameNodeService {
 
     public NameNodeService() {
-        dataNodes = new ArrayList<>();
+        dataNodes = Collections.synchronizedList(new ArrayList<>());
     }
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NameNodeService.class);
@@ -30,6 +36,40 @@ public class NameNodeService {
 
     @Value("${namenode.port}")
     private int namenodePort;
+
+    public void heartBeat() {
+        new Thread(() -> {
+            while (true) {
+                try {
+                    Thread.sleep(5_000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                if (dataNodes.isEmpty()) {
+                    LOGGER.info("No datanode available, so sad :(");
+                    continue;
+                }
+
+                dataNodes.stream()
+                        .peek(dataNode -> {
+                            try (Socket socket = new Socket(dataNode.getHost(), dataNode.getPort());
+                                 ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+                                 ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+                            ) {
+                                Thread.sleep(500);
+                                out.writeObject(CommandType.HEARTBEAT);
+                                in.readObject();
+                            } catch (Exception e) {
+                                dataNode.setAlive(false);
+                            }
+
+                        })
+                        .forEach(dataNode -> LOGGER.info("Datanode: {}:{} is {}", dataNode.getHost(), dataNode.getPort(), dataNode.isAlive() ? "alive" : "dead"));
+                dataNodes.removeIf(dataNode -> !dataNode.isAlive());
+            }
+        }).start();
+    }
 
     public void openSocketToClient() {
         final ServerSocket serverSocket;
@@ -56,7 +96,7 @@ public class NameNodeService {
 
                             case GET:
                                 String fileName = (String) in.readObject();
-                                List<Chunk> f  = dbService.getFilesByName(fileName);
+                                List<Chunk> f = dbService.getFilesByName(fileName);
                                 LOGGER.info("Getting filename: {}", fileName);
                                 out.writeObject(Status.OK);
                                 out.writeObject(f);
@@ -88,7 +128,7 @@ public class NameNodeService {
                                 chunk.setFilename(filename);
                                 chunk.setLocked(true);
                                 chunk.setDataNodeHost(dataNode.getHost());
-                                        chunk.setDataNodePort(dataNode.getCommandPort());
+                                chunk.setDataNodePort(dataNode.getPort());
 
                                 dbService.saveObject(chunk);
 
@@ -111,7 +151,7 @@ public class NameNodeService {
 
 
                                 out.writeObject(Status.OK);
-                                out.writeObject( dbService.getIdByName(name));
+                                out.writeObject(dbService.getIdByName(name));
                                 break;
 
                             case RENAME:

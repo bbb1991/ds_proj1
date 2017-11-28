@@ -33,8 +33,14 @@ This server stores files.
 ### How to run
 ```text
 mvn clean install
-mvn spring-boot:run -pl datanode
+mvn spring-boot:run -Drun.jvmArguments="-Ddatanode.port=9090 -Ddatanode.host=0.0.0.0" -pl datanode
 ```
+
+When you run datanode, you need to specify port via parameter <code>-Ddatanode.port</code>, in example above, we open port
+<code>9090</code> for listen. If you does not specify port, application will open random port.
+Also, you can specify which host should listen with parameter <code>-Ddatanode.host</code>.
+
+Both parameters are optional.
 
 
 ## Client

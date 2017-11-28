@@ -1,5 +1,6 @@
 package me.bbb1991.ds.ga1.datanode.service;
 
+import me.bbb1991.ds.ga1.common.Utils;
 import me.bbb1991.ds.ga1.common.model.CommandType;
 import me.bbb1991.ds.ga1.common.model.DataNode;
 import me.bbb1991.ds.ga1.common.model.Status;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Controller;
 
+import javax.annotation.PostConstruct;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -29,6 +31,10 @@ public class DataNodeService {
     @Value("${namenode.host}")
     private String namenodeHost;
 
+    private String datanodeHost;
+
+    private int datanodePort;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(DataNode.class);
 
     /**
@@ -39,11 +45,12 @@ public class DataNodeService {
     public void notifyNameNode() {
         LOGGER.info("Sending hello message to namenode");
         try (Socket socket = new Socket(namenodeHost, namenodePort);
+             ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
              ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream())) {
-            System.out.println(socket.getInputStream().read());
+            Thread.sleep(1000);
             out.writeObject(CommandType.HELLO);
-            out.writeObject(new DataNode("localhost", 9090));
-        } catch (IOException e) {
+            out.writeObject(new DataNode(datanodeHost, datanodePort));
+        } catch (Exception e) {
             LOGGER.error("Error while sending hello message to namenode!", e);
             throw new RuntimeException(e);
         }
@@ -55,7 +62,7 @@ public class DataNodeService {
     public void openSocket() {
         final ServerSocket serverSocket;
         try {
-            serverSocket = new ServerSocket(9090);
+            serverSocket = new ServerSocket(datanodePort);
             new Thread(() -> {
                 while (true) {
                     try (Socket socket = serverSocket.accept();
@@ -94,7 +101,7 @@ public class DataNodeService {
                                         LOGGER.info("Matched! Sending file to client");
                                         out.writeObject(Status.OK);
                                         try (FileInputStream fileInputStream = new FileInputStream(file);
-                                        DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
+                                             DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
                                         ) {
                                             buffer = new byte[4096];
 
@@ -108,6 +115,10 @@ public class DataNodeService {
                                 }
 
                                 out.writeObject(Status.FILE_NOT_FOUND);
+                                break;
+
+                            case HEARTBEAT:
+                                out.writeObject(Status.OK);
                                 break;
 
                             default:
@@ -124,5 +135,11 @@ public class DataNodeService {
         } catch (IOException e) {
             LOGGER.error("ERROR!", e);
         }
+    }
+
+    @PostConstruct
+    public void init() throws IOException {
+        datanodePort = System.getProperty("datanode.port", null) == null ? Utils.getRandomPort() : Integer.parseInt(System.getProperty("datanode.port"));
+        datanodeHost = System.getProperty("datanode.host", null) == null ? "0.0.0.0" : System.getProperty("datanode.host");
     }
 }

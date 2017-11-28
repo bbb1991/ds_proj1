@@ -154,7 +154,7 @@ public class ClientManager {
             LOGGER.info("Datanode is: {}", datanode);
             LOGGER.info("File name is: {}", filename);
 
-            sendFile(datanode.getHost(), datanode.getCommandPort(), multipartFile, filename);
+            sendFile(datanode.getHost(), datanode.getPort(), multipartFile, filename);
 
         } catch (Exception e) {
             LOGGER.error("ERROR!", e);

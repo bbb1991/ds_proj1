@@ -20,26 +20,36 @@ public class DataNode implements Serializable {
     /**
      * Data node port
      */
-    private int commandPort;
+    private int port;
+
+    /**
+     * Marker that shows is datanode alive or not. Used by namenode for deleting dead datanodes from list
+     */
+    private boolean alive;
 
     public DataNode() {
     }
 
-    public DataNode(String host, int commandPort) {
-        this.host = host;
-        this.commandPort = commandPort;
+    public DataNode(String host, int port) {
+        this(host, port, true);
     }
 
-    public void setCommandPort(int commandPort) {
-        this.commandPort = commandPort;
+    public DataNode(String host, int port, boolean alive) {
+        this.host = host;
+        this.port = port;
+        this.alive = alive;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
     }
 
     public void setHost(String host) {
         this.host = host;
     }
 
-    public int getCommandPort() {
-        return commandPort;
+    public int getPort() {
+        return port;
     }
 
     public String getHost() {
@@ -49,5 +59,13 @@ public class DataNode implements Serializable {
     @Override
     public String toString() {
         return new Gson().toJson(this);
+    }
+
+    public boolean isAlive() {
+        return alive;
+    }
+
+    public void setAlive(boolean alive) {
+        this.alive = alive;
     }
 }

@@ -4,7 +4,6 @@ import me.bbb1991.ds.ga1.namenode.service.NameNodeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.Banner;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -32,6 +31,7 @@ public class Application {
         new SpringApplicationBuilder(Application.class).bannerMode(Banner.Mode.OFF).application().run(args);
 
         nameNodeService.openSocketToClient();
+        nameNodeService.heartBeat();
     }
 
     @Autowired
