@@ -15,6 +15,7 @@ import javax.annotation.PostConstruct;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -107,12 +108,7 @@ public class DataNodeService {
                                         try (FileInputStream fileInputStream = new FileInputStream(file);
                                              DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
                                         ) {
-                                            buffer = new byte[4096];
-
-                                            while (fileInputStream.read(buffer) > 0) {
-                                                dataOutputStream.write(buffer);
-                                            }
-                                            dataOutputStream.flush();
+                                            sendFile(dataOutputStream, fileInputStream);
                                         }
                                         break;
                                     }
@@ -143,6 +139,34 @@ public class DataNodeService {
                                 out.writeObject(Status.OK);
                                 break;
 
+                            case SYNC:
+                                DataNode dataNode = (DataNode) in.readObject();
+                                Arrays.stream(getListOfFiles()).forEach(file -> {
+                                    try (Socket socket1 = new Socket(dataNode.getHost(), dataNode.getPort());
+                                         ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket1.getOutputStream());
+                                         ObjectInputStream objectInputStream = new ObjectInputStream(socket1.getInputStream());
+                                         DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
+                                         FileInputStream fileInputStream = new FileInputStream(file);
+                                    ) {
+                                        objectOutputStream.writeObject(CommandType.UPLOAD_FILE);
+                                        objectOutputStream.writeObject(file.length());
+                                        objectOutputStream.writeObject(file.getName());
+                                        sendFile(dataOutputStream, fileInputStream);
+
+                                        Status status = (Status) objectInputStream.readObject();
+
+                                        if (status != Status.OK) {
+                                            LOGGER.warn("Status is not what we expected");
+                                            throw new RuntimeException("Exception");
+                                        }
+
+                                    } catch (Exception e) {
+                                        LOGGER.error("Error while sync file");
+                                        e.printStackTrace();
+                                    }
+                                });
+                                break;
+
                             default:
                                 throw new RuntimeException("Not implemented!");
 
@@ -163,5 +187,20 @@ public class DataNodeService {
     public void init() throws IOException {
         datanodePort = System.getProperty("datanode.port", null) == null ? Utils.getRandomPort() : Integer.parseInt(System.getProperty("datanode.port"));
         datanodeHost = System.getProperty("datanode.host", null) == null ? "0.0.0.0" : System.getProperty("datanode.host");
+    }
+
+    private void sendFile(OutputStream out, InputStream in) throws IOException {
+        byte[] buffer = new byte[4096];
+
+        while (in.read(buffer) > 0) {
+            out.write(buffer);
+        }
+        out.flush();
+    }
+
+    private File[] getListOfFiles() {
+        return Arrays.stream(new File(workingPath).listFiles())
+                .filter(file -> file.getName().matches("\\d{16}"))
+                .toArray(File[]::new);
     }
 }

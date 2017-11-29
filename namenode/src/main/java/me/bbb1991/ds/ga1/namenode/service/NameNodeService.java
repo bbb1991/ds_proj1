@@ -51,16 +51,16 @@ public class NameNodeService {
                             ) {
                                 Thread.sleep(500);
                                 out.writeObject(CommandType.HEARTBEAT);
-                                in.readObject();
+                                Status status = (Status) in.readObject();
                             } catch (Exception e) {
+                                LOGGER.error("ERROR!", e);
                                 dataNode.setAlive(false);
                             }
-
                         })
-                        .filter(DataNode::isAlive)
-                        .forEach(dataNode -> {
-                            LOGGER.info("Datanode: {}:{} is dead. Removing from DB");
-                            dbService.removeDataNode(dataNode);
+                        .filter(e -> !e.isAlive())
+                        .forEach(e -> {
+                            LOGGER.info("Datanode: {} is dead. Removing from DB", e);
+                            dbService.removeDataNode(e);
 
                         });
             }
@@ -210,6 +210,22 @@ public class NameNodeService {
                                 LOGGER.info("New Data Node came up!: {}", dataNode);
                                 dbService.addDataNode(dataNode);
                                 LOGGER.info("{}", dataNode);
+
+                                if (dataNodes.size() > 1) {
+                                    try (Socket socket1 = new Socket(dataNodes.get(0).getHost(), dataNodes.get(0).getPort());
+                                         ObjectInputStream objectInputStream = new ObjectInputStream(socket1.getInputStream());
+                                         ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket1.getOutputStream());
+                                    ) {
+                                        objectOutputStream.writeObject(CommandType.SYNC);
+                                        objectOutputStream.writeObject(dataNode);
+
+                                        Status status = (Status) objectInputStream.readObject();
+
+                                        if (status != Status.OK) {
+                                            LOGGER.warn("Sync is failed");
+                                        }
+                                    }
+                                }
                                 break;
 
                             default:

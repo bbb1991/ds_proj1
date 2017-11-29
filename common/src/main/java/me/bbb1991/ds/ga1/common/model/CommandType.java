@@ -6,9 +6,9 @@ public enum CommandType {
     GET, // download file/chunk of file from data node
     MKDIR, // create dir
     UPLOAD_FILE,
-    FILE_TYPE,
-    HELLO,
+    HELLO, // this command sends datanode to namenode, when datanode starts
     REMOVE, // remove file/folder
     GET_ID, // request file ID.
-    RENAME, // upload file
+    RENAME, // rename file/folder
+    SYNC, // copy all files from master datanode to new connected datanodes
 }

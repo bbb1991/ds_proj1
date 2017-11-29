@@ -33,7 +33,7 @@ public class DataNode implements Serializable {
     /**
      * Marker that shows is datanode alive or not. Used by namenode for deleting dead datanodes from list
      */
-    @Transient
+    @Column
     private boolean alive;
 
     public DataNode() {
