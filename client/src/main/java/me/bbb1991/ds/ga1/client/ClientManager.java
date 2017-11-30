@@ -4,6 +4,7 @@ import me.bbb1991.ds.ga1.common.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -34,6 +35,7 @@ public class ClientManager {
      * @param path working directory
      * @return a list of files from {@param path}
      */
+    @Cacheable("files")
     @SuppressWarnings("unchecked")
     public List<Chunk> getListOfFiles(String path) {
         LOGGER.info("Sending command to get list of files to name node");
@@ -67,6 +69,7 @@ public class ClientManager {
      * @param file filename to download
      * @return in case if file was splitted into chunks will return list of chunks, else list with single element
      */
+    @Cacheable("chunks")
     @SuppressWarnings("unchecked")
     public List<Chunk> getFile(String file) {
         LOGGER.info("Sending request to name node to get info about where we can download given file");
@@ -186,6 +189,7 @@ public class ClientManager {
         }
     }
 
+    @Cacheable("file")
     public File downloadFile(String host, int port, String fileName, long fileSize) {
         try (Socket socket = new Socket(host, port);
              DataInputStream dataInputStream = new DataInputStream(socket.getInputStream()); // to get a file
@@ -247,8 +251,9 @@ public class ClientManager {
         }
     }
 
+    @Cacheable("ids")
     public long getFileId(String s) {
-        LOGGER.info("Sending request to remove");
+        LOGGER.info("Getting file id");
         try (Socket socket = new Socket(namenodeHost, namenodePort);
              ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
              ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {

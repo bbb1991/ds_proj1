@@ -11,7 +11,6 @@
             <h1 class="text-center">Index page</h1>
         <#if files??>
 
-        <form method="post" action="/remove_all">
             <table class="table table-hover">
                 <thead>
                 <tr>
@@ -20,21 +19,15 @@
                     <th>File size</th>
                 </tr>
                 </thead>
-
-
                 <tbody>
                     <#list files as file>
                     <tr>
-                        <td>
-                            <input type="checkbox" name="name[]" value="${file.originalName}">
-                            <a href="/get/${file.originalName}">${file.originalName}</a></td>
+                        <td><a href="/get/${file.originalName}">${file.originalName}</a></td>
                         <td>${file.datatype}</td>
                         <td>${file.fileSize}</td>
                     </tr>
                     </#list>
                 </tbody>
-
-
             </table>
         <#else>
             <h3>No files available to display!</h3>
@@ -43,11 +36,6 @@
 
         <#--<p>${files?size}</p>-->
             <hr>
-
-            <input type="hidden" name="current-folder" value="${currentFolderId}">
-            <input type="submit" value="Remove selected items" class="btn btn-danger">
-        </form>
-
             <h3 class="text-center">Create new folder</h3>
             <br>
             <form method="post" action="/mkdir">

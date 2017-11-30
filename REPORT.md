@@ -1,4 +1,14 @@
 # Report
+## Authors:
+- Bagdat Bimaganbetov. Server side programming
+- Khayrullo Rustamov. Client side programming
+
+## Short description
+This project has 4 modules:
+- **common** - contains frequently using classes, such as hibernate models, useful methods and etc.
+- **client** - client logic. Provides web interface to explore commands such as upload, remove, download and etc.
+- **namenode** - server side, that holds meta information.
+- **datanode** - server side, that holds files.
 ## Namenode
 ### Short description
 This server holds meta information such as file name, file size, in which datanode
@@ -90,4 +100,11 @@ After file is removed from all datanode, namenode removed record from database, 
  
 ## Additional features
 ### Caching
-TODO add info about ehcache
+To caching, we use library called **ehcache**. memoryStoreEvictionPolicy="LFU" 
+Memory store eviction Policy is **LFU**.
+#### How you can check it?
+1. Upload file
+1. Download file
+1. Turn off namenode/datanode
+1. Refresh page
+1. Download file again.
