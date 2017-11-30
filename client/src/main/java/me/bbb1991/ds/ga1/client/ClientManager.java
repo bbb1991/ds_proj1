@@ -35,7 +35,7 @@ public class ClientManager {
      * @param path working directory
      * @return a list of files from {@param path}
      */
-    @Cacheable("files")
+//    @Cacheable("files")
     @SuppressWarnings("unchecked")
     public List<Chunk> getListOfFiles(String path) {
         LOGGER.info("Sending command to get list of files to name node");
@@ -150,14 +150,21 @@ public class ClientManager {
                 throw new RuntimeException();
             }
 
-            DataNode datanode = (DataNode) in.readObject();
+            List<DataNode> datanodes = (List<DataNode>) in.readObject();
             String filename = (String) in.readObject();
 
             LOGGER.info("Response status is: {}", status);
-            LOGGER.info("Datanode is: {}", datanode);
+            LOGGER.info("Datanode is: {}", datanodes);
             LOGGER.info("File name is: {}", filename);
 
-            sendFile(datanode.getHost(), datanode.getPort(), multipartFile, filename);
+            datanodes.forEach(datanode -> {
+                try {
+                    sendFile(datanode.getHost(), datanode.getPort(), multipartFile, filename);
+                } catch (IOException e) {
+                    LOGGER.error("ERROR while uploading to datanode: {}", datanode, e);
+                }
+            });
+
 
         } catch (Exception e) {
             LOGGER.error("ERROR!", e);

@@ -85,4 +85,22 @@ public class DataNode implements Serializable {
     public void setId(long id) {
         this.id = id;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        DataNode dataNode = (DataNode) o;
+
+        if (port != dataNode.port) return false;
+        return host.equals(dataNode.host);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = host.hashCode();
+        result = 31 * result + port;
+        return result;
+    }
 }

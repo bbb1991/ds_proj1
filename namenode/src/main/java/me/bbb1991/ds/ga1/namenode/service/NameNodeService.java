@@ -132,7 +132,6 @@ public class NameNodeService {
                                     break;
                                 }
 
-                                DataNode dataNode = dataNodes.get(0);
 
                                 String filename = Utils.getFileName();
                                 LOGGER.info("File name is: {}", filename);
@@ -143,7 +142,7 @@ public class NameNodeService {
                                 dbService.saveObject(chunk);
 
                                 out.writeObject(Status.OK);
-                                out.writeObject(dataNode);
+                                out.writeObject(dataNodes);
                                 out.writeObject(filename);
                                 break;
 
@@ -210,7 +209,7 @@ public class NameNodeService {
                                 break;
 
                             case HELLO:
-                                dataNode = (DataNode) in.readObject();
+                                DataNode dataNode = (DataNode) in.readObject();
                                 LOGGER.info("New Data Node came up!: {}", dataNode);
                                 dbService.addDataNode(dataNode);
                                 dataNodes.add(dataNode);
