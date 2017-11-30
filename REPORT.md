@@ -9,6 +9,16 @@ This project has 4 modules:
 - **client** - client logic. Provides web interface to explore commands such as upload, remove, download and etc.
 - **namenode** - server side, that holds meta information.
 - **datanode** - server side, that holds files.
+
+Used technologies:
+- **Java 8**
+- **Hibernate**
+- **Spring boot**
+- **Jetty** server
+- **H2** database
+- **Freemarker** template engine
+- **ehcache** caching library
+
 ## Namenode
 ### Short description
 This server holds meta information such as file name, file size, in which datanode
@@ -20,7 +30,7 @@ mvn spring-boot:run -pl namenode
 ```
 ### DB
 By default, this project uses **H2** database. But you can change it to another DB.
-To access data in runtime, after starting namenode go to [http://localhost:8000/console](http://localhost:8000) and
+To access data in runtime, after starting namenode go to [http://localhost:8000/console](http://localhost:8000/console) and
 change JDBC URL to ```jdbc:h2:./test```
 
 ### Folder structure
@@ -106,8 +116,14 @@ Memory store eviction Policy is **LFU**.
 1. Upload file
 1. Download file
 1. Turn off namenode/datanode
-1. Refresh page
 1. Download file again.
+
+Also you can download file and when you downloading in second time you can just look at datanode/namenode logs (no records about
+downloading second time).
+
+Node. In first, we also used caching list of files. (if namenode is down, we can refresh page and get list of files and directories from cache)
+But then we figured out, that it is not good idea, because after removing file/folder, instead of getting list of files from namenode client gets it from cache
+
 
 ## Hashsum of project:
 ```text
