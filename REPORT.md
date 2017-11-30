@@ -107,6 +107,18 @@ After file is removed from all datanode, namenode removed record from database, 
     - get a list of files
     - remove files from datanodes
     - remove all records from db
+    
+### Connecting new datanode
+1. New datanode sends HELLO command to namenode
+1. Namenode add record to database about new datanode
+1. If after adding datanodes count > 1 namenode sends to old datanode SYNC command with new datanode info
+1. after receiving SYNC command datanode sends all files to new datanode.
+1. After success sending files, datanode sends OK status to namenode
+
+### Checking datanode health
+1. Every 5 seconds namenode gets a list of all datanodes and sends HEARTBEAT commands to every datanode
+1. If datanode is alive, it responses OK status
+1. if datanode is dead, namenode will remove info about datanode from list.
  
 ## Additional features
 ### Caching
