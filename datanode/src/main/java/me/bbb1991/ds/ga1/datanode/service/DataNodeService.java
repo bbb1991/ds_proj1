@@ -5,6 +5,7 @@ import me.bbb1991.ds.ga1.common.model.Chunk;
 import me.bbb1991.ds.ga1.common.model.CommandType;
 import me.bbb1991.ds.ga1.common.model.DataNode;
 import me.bbb1991.ds.ga1.common.model.Status;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -79,8 +80,16 @@ public class DataNodeService {
                                 byte[] buffer = new byte[4096];
                                 long size = (long) in.readObject();
                                 String filename = (String) in.readObject();
+
+                                for (File ff : new File(workingPath).listFiles()) {
+                                    if (ff.getName().equalsIgnoreCase(filename)) {
+                                        filename += "-copy";
+                                    }
+                                }
+
                                 LOGGER.info("Saving file as: {}", workingPath + File.separator + filename);
                                 try (FileOutputStream fileOutputStream = new FileOutputStream(workingPath + File.separator + filename)) {
+//                                    sendFile(fileOutputStream, dataInputStream);
                                     int read;
                                     long totalRead = 0;
                                     long remaining = size;
@@ -94,14 +103,14 @@ public class DataNodeService {
                                 }
                                 out.writeObject(Status.OK);
 
-                                try (Socket nnSocket = new Socket(namenodeHost, namenodePort);
-
-                                     ObjectOutputStream objectOutputStream = new ObjectOutputStream(nnSocket.getOutputStream());
-                                ) {
-                                    LOGGER.info("Sending command UNLOCK to namenode");
-                                    objectOutputStream.writeObject(CommandType.UPLOADED);
-                                    objectOutputStream.writeObject(filename);
-                                }
+//                                try (Socket nnSocket = new Socket(namenodeHost, namenodePort);
+//
+//                                     ObjectOutputStream objectOutputStream = new ObjectOutputStream(nnSocket.getOutputStream());
+//                                ) {
+//                                    LOGGER.info("Sending command UNLOCK to namenode");
+//                                    objectOutputStream.writeObject(CommandType.UPLOADED);
+//                                    objectOutputStream.writeObject(filename);
+//                                }
                                 break;
 
                             case GET:
@@ -109,7 +118,7 @@ public class DataNodeService {
                                 boolean isFileFound = false;
                                 for (File file : new File(workingPath).listFiles()) {
                                     LOGGER.info("Comparing file {} and {}", filename, file.getName());
-                                    if (filename.equalsIgnoreCase(file.getName())) {
+                                    if (filename.equalsIgnoreCase(file.getName()) || (filename + "-copy").equalsIgnoreCase(file.getName())) {
                                         isFileFound = true;
                                         LOGGER.info("Matched! Sending file to client");
                                         out.writeObject(Status.OK);
@@ -153,13 +162,14 @@ public class DataNodeService {
                                     try (Socket socket1 = new Socket(dataNode.getHost(), dataNode.getPort());
                                          ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket1.getOutputStream());
                                          ObjectInputStream objectInputStream = new ObjectInputStream(socket1.getInputStream());
-                                         DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
                                          FileInputStream fileInputStream = new FileInputStream(file);
                                     ) {
+                                        Thread.sleep(500);
+                                        LOGGER.info("Synchronising file: {}", file.getName());
                                         objectOutputStream.writeObject(CommandType.UPLOAD_FILE);
                                         objectOutputStream.writeObject(file.length());
                                         objectOutputStream.writeObject(file.getName());
-                                        sendFile(dataOutputStream, fileInputStream);
+                                        sendFile(objectOutputStream, fileInputStream);
 
                                         Status status = (Status) objectInputStream.readObject();
 
@@ -173,6 +183,7 @@ public class DataNodeService {
                                         e.printStackTrace();
                                     }
                                 });
+                                out.writeObject(Status.OK);
                                 break;
 
                             default:
@@ -198,12 +209,7 @@ public class DataNodeService {
     }
 
     private void sendFile(OutputStream out, InputStream in) throws IOException {
-        byte[] buffer = new byte[4096];
-
-        while (in.read(buffer) > 0) {
-            out.write(buffer);
-        }
-        out.flush();
+        IOUtils.copy(in, out);
     }
 
     private File[] getListOfFiles() {
