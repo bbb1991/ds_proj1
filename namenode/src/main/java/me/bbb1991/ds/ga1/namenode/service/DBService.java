@@ -105,4 +105,8 @@ public class DBService {
     public void removeDataNode(DataNode dataNode) {
         dataNodeDao.remove(dataNode);
     }
+
+    public void unlockFile(String filename) {
+        fileChunkDao.unlockFile(filename);
+    }
 }

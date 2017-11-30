@@ -42,6 +42,7 @@ public class NameNodeService {
                 }
 
                 List<DataNode> dataNodes = dbService.getAllDataNodes();
+                LOGGER.debug("Datanodes count is: {}", dataNodes.size());
 
                 dataNodes.stream()
                         .peek(dataNode -> {
@@ -49,6 +50,7 @@ public class NameNodeService {
                                  ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
                                  ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
                             ) {
+                                LOGGER.debug("Sending request to datanode: {}", dataNode);
                                 Thread.sleep(500);
                                 out.writeObject(CommandType.HEARTBEAT);
                                 Status status = (Status) in.readObject();
@@ -228,6 +230,12 @@ public class NameNodeService {
                                         }
                                     }
                                 }
+                                break;
+
+                            case UPLOADED:
+                                filename = (String) in.readObject();
+                                LOGGER.info("Unlocking file: {}", filename);
+                                dbService.unlockFile(filename);
                                 break;
 
                             default:

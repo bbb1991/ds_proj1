@@ -18,7 +18,7 @@ public class FileChunkDao {
     @SuppressWarnings("unchecked")
     public List<Chunk> getAllFilesOnFolder(String folder) {
         long parentId = this.getId(folder);
-        Query query = entityManager.createQuery("select c from Chunk c where c.parentId = :parentId");
+        Query query = entityManager.createQuery("select c from Chunk c where c.parentId = :parentId and c.locked=false");
         query.setParameter("parentId", parentId);
         return query.getResultList();
     }
@@ -34,7 +34,7 @@ public class FileChunkDao {
 
     @SuppressWarnings("unchecked")
     public List<Chunk> getFileByName(String fileName) {
-        Query query = entityManager.createQuery("select c from Chunk c where c.originalName = :filename");
+        Query query = entityManager.createQuery("select c from Chunk c where c.originalName = :filename and c.locked=false ");
         query.setParameter("filename", fileName);
 
         return query.getResultList();
@@ -46,7 +46,7 @@ public class FileChunkDao {
     }
 
     public long getId(String name) {
-        Query query = entityManager.createQuery("select c from Chunk c where c.originalName = :name");
+        Query query = entityManager.createQuery("select c from Chunk c where c.originalName = :name and c.locked=false ");
         query.setParameter("name", name);
 
         Chunk chunk = (Chunk) query.getSingleResult();
@@ -84,5 +84,11 @@ public class FileChunkDao {
     @Transactional
     public void removeObject(Chunk e) {
         entityManager.remove(entityManager.contains(e) ? e : entityManager.merge(e));
+    }
+
+    @Transactional
+    public void unlockFile(String filename) {
+        entityManager.createQuery("update Chunk c set c.locked=false where c.filename=:filename")
+                .setParameter("filename", filename).executeUpdate();
     }
 }

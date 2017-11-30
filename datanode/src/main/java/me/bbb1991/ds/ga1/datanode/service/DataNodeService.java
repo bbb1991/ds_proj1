@@ -48,7 +48,6 @@ public class DataNodeService {
     public void notifyNameNode() {
         LOGGER.info("Sending hello message to namenode");
         try (Socket socket = new Socket(namenodeHost, namenodePort);
-             ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
              ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream())) {
             Thread.sleep(1000);
             out.writeObject(CommandType.HELLO);
@@ -94,6 +93,15 @@ public class DataNodeService {
                                     LOGGER.info("File saved!"); // todo unlock file in namenode
                                 }
                                 out.writeObject(Status.OK);
+
+                                try (Socket nnSocket = new Socket(namenodeHost, namenodePort);
+
+                                     ObjectOutputStream objectOutputStream = new ObjectOutputStream(nnSocket.getOutputStream());
+                                ) {
+                                    LOGGER.info("Sending command UNLOCK to namenode");
+                                    objectOutputStream.writeObject(CommandType.UPLOADED);
+                                    objectOutputStream.writeObject(filename);
+                                }
                                 break;
 
                             case GET:

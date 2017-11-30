@@ -10,5 +10,5 @@ public enum CommandType {
     REMOVE, // remove file/folder
     GET_ID, // request file ID.
     RENAME, // rename file/folder
-    SYNC, // copy all files from master datanode to new connected datanodes
+    SYNC, UPLOADED, // copy all files from master datanode to new connected datanodes
 }
