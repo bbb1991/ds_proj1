@@ -213,6 +213,7 @@ public class NameNodeService {
                                 dataNode = (DataNode) in.readObject();
                                 LOGGER.info("New Data Node came up!: {}", dataNode);
                                 dbService.addDataNode(dataNode);
+                                dataNodes.add(dataNode);
                                 LOGGER.info("{}", dataNode);
 
                                 if (dataNodes.size() > 1) {
@@ -244,7 +245,6 @@ public class NameNodeService {
                         }
                     } catch (Exception e) {
                         LOGGER.error("ERROR!", e);
-                        throw new RuntimeException(e);
                     }
                 }
 

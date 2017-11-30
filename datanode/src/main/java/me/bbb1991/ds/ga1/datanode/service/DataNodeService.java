@@ -90,7 +90,7 @@ public class DataNodeService {
                                         LOGGER.info("Read {} bytes", totalRead);
                                         fileOutputStream.write(buffer, 0, read);
                                     }
-                                    LOGGER.info("File saved!"); // todo unlock file in namenode
+                                    LOGGER.info("File saved!");
                                 }
                                 out.writeObject(Status.OK);
 
