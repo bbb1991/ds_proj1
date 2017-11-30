@@ -226,13 +226,13 @@ public class ClientManager {
         }
     }
 
-    public void remove(String name) {
+    public void remove(List<String> names) {
         LOGGER.info("Sending request to remove");
         try (Socket socket = new Socket(namenodeHost, namenodePort);
              ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
              ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
             out.writeObject(CommandType.REMOVE);
-            out.writeObject(name);
+            out.writeObject(names);
             Status status = (Status) in.readObject();
 
             LOGGER.info("Response status is: {}", status);

@@ -146,49 +146,51 @@ public class NameNodeService {
                                 break;
 
                             case REMOVE:
-                                String name = (String) in.readObject();
-                                LOGGER.info("Removing folder/file with name: {}", name);
+                                List<String> names = (List<String>) in.readObject();
+                                LOGGER.info("Removing folder/file with name: {}", names.stream().reduce(", ", String::concat));
+                                names.forEach(e -> {
+                                    long id = dbService.getIdByName(e);
+                                    List<Chunk> filesToRemove = dbService.getAllChildsById(id);
+                                    LOGGER.info("Marked to remove objects: {}", filesToRemove.size());
 
-                                long id = dbService.getIdByName(name);
-                                files = dbService.getAllChildsById(id);
-                                LOGGER.info("Marked to remove objects: {}", files.size());
+                                    LOGGER.info(Arrays.deepToString(filesToRemove.toArray()));
 
-                                LOGGER.info(Arrays.deepToString(files.toArray()));
+                                    if (filesToRemove.stream().anyMatch(el -> el.getDatatype() != FileType.FOLDER)) {
 
-                                if (files.stream().anyMatch(e -> e.getDatatype() != FileType.FOLDER)) {
+                                        LOGGER.info("Also removing some files...");
 
-                                    LOGGER.info("Also removing some files...");
+                                        dataNodes.forEach(dn -> {
+                                            try (Socket socket1 = new Socket(dn.getHost(), dn.getPort());
+                                                 ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket1.getOutputStream());
+                                                 ObjectInputStream objectInputStream = new ObjectInputStream(socket1.getInputStream());
+                                            ) {
+                                                objectOutputStream.writeObject(CommandType.REMOVE);
+                                                objectOutputStream.writeObject(
+                                                        filesToRemove.stream()
+                                                                .filter(ff -> !(ff.getDatatype() == FileType.FOLDER))
+                                                                .collect(Collectors.toList())
+                                                );
 
-                                    dataNodes.forEach(dn -> {
-                                        try (Socket socket1 = new Socket(dn.getHost(), dn.getPort());
-                                             ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket1.getOutputStream());
-                                             ObjectInputStream objectInputStream = new ObjectInputStream(socket1.getInputStream());
-                                        ) {
-                                            objectOutputStream.writeObject(CommandType.REMOVE);
-                                            objectOutputStream.writeObject(
-                                                    files.stream()
-                                                            .filter(file -> !(file.getDatatype() == FileType.FOLDER))
-                                                            .collect(Collectors.toList())
-                                            );
+                                                Status status = (Status) objectInputStream.readObject();
 
-                                            Status status = (Status) objectInputStream.readObject();
+                                                if (status != Status.OK) {
+                                                    LOGGER.warn("Cannot remove some files in datanode: {}:{}", dn.getHost(), dn.getPort());
+                                                }
 
-                                            if (status != Status.OK) {
-                                                LOGGER.warn("Cannot remove some files in datanode: {}:{}", dn.getHost(), dn.getPort());
+                                            } catch (Exception er) {
+                                                er.printStackTrace();
                                             }
+                                        });
+                                    }
 
-                                        } catch (Exception e) {
-                                            e.printStackTrace();
-                                        }
-                                    });
-                                }
+                                    dbService.removeListOfObjects(filesToRemove);
+                                });
 
-                                dbService.removeListOfObjects(files);
                                 out.writeObject(Status.OK);
                                 break;
 
                             case GET_ID:
-                                name = (String) in.readObject();
+                                String name = (String) in.readObject();
                                 LOGGER.info("Getting ID by name: {}", name);
 
 
@@ -199,7 +201,7 @@ public class NameNodeService {
                             case RENAME:
                                 String oldName = (String) in.readObject();
                                 String newName = (String) in.readObject();
-                                id = (long) in.readObject();
+                                long id = (long) in.readObject();
 
                                 dbService.rename(oldName, newName, id);
                                 out.writeObject(Status.OK);

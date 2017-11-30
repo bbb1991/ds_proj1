@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -133,7 +134,7 @@ public class TemplateController {
 
         LOGGER.info("Incoming message for removing. name is: {}", name);
 
-        clientManager.remove(name);
+        clientManager.remove(Collections.singletonList(name));
 
         return "redirect:/";
     }
@@ -145,6 +146,22 @@ public class TemplateController {
         clientManager.renameFile(oldName, newName, id);
 
         return "redirect:/";
+    }
+
+    @PostMapping("/remove_all")
+    public String removeAll(@RequestParam("name[]") List<String> names) {
+        LOGGER.info("Removing multiple files: {}", names.stream().reduce(", ", String::concat));
+
+        clientManager.remove(names);
+
+        return "redirect:/";
+    }
+
+    @PostMapping("/is_folder_empty")
+    public boolean isFolderEmpty(@RequestParam String name) {
+        LOGGER.info("Is folder is empty: {}", name);
+
+        return clientManager.getListOfFiles(name).isEmpty();
     }
 
     @Autowired
