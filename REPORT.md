@@ -39,18 +39,18 @@ turns into:
 
 ## Datanode
 ### Short description
-This server stores files. All data stores on ```datanode.working_dir``` folder (you can change it by editing 
-```application.properties``` file). 
+This server stores files. 
 
 ### How to run
 ```text
 mvn clean install
-mvn spring-boot:run -Drun.jvmArguments="-Ddatanode.port=9090 -Ddatanode.host=0.0.0.0" -pl datanode
+mvn spring-boot:run -Drun.jvmArguments="-Ddatanode.port=9090 -Ddatanode.host=0.0.0.0 -Ddatanode.dir=/tmp" -pl datanode
 ```
 
 When you run datanode, you need to specify port via parameter <code>-Ddatanode.port</code>, in example above, we open port
 <code>9090</code> for listen. If you does not specify port, application will open random port.
 Also, you can specify which host should listen with parameter <code>-Ddatanode.host</code>.
+All data stored in folder ```-Ddatanode.dir``. If this parameter not passed, then we use temp folder (Depends on system).`
 
 Both parameters are optional.
 
@@ -100,7 +100,7 @@ After file is removed from all datanode, namenode removed record from database, 
  
 ## Additional features
 ### Caching
-To caching, we use library called **ehcache**. memoryStoreEvictionPolicy="LFU" 
+To caching, we use library called **ehcache**.
 Memory store eviction Policy is **LFU**.
 #### How you can check it?
 1. Upload file
@@ -108,3 +108,13 @@ Memory store eviction Policy is **LFU**.
 1. Turn off namenode/datanode
 1. Refresh page
 1. Download file again.
+
+## Hashsum of project:
+```text
+TODO
+```
+How we calculated: 
+```bash
+wget https://github.com/bbb1991/ds_proj1/archive/master.zip
+sha512sum master.zip 
+```

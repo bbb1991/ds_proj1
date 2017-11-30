@@ -26,7 +26,6 @@ import java.util.List;
 @PropertySource("classpath:application.properties")
 public class DataNodeService {
 
-    @Value("${datanode.working_dir}")
     private String workingPath;
 
     @Value("${namenode.port}")
@@ -99,6 +98,7 @@ public class DataNodeService {
                                         LOGGER.info("Read {} bytes", totalRead);
                                         fileOutputStream.write(buffer, 0, read);
                                     }
+                                    fileOutputStream.flush();
                                     LOGGER.info("File saved!");
                                 }
                                 out.writeObject(Status.OK);
@@ -206,10 +206,12 @@ public class DataNodeService {
     public void init() throws IOException {
         datanodePort = System.getProperty("datanode.port", null) == null ? Utils.getRandomPort() : Integer.parseInt(System.getProperty("datanode.port"));
         datanodeHost = System.getProperty("datanode.host", null) == null ? "0.0.0.0" : System.getProperty("datanode.host");
+        workingPath = System.getProperty("datanode.dir", null) == null ? System.getProperty("java.io.tmpdir") : System.getProperty("datanode.dir");
     }
 
     private void sendFile(OutputStream out, InputStream in) throws IOException {
         IOUtils.copy(in, out);
+        out.flush();
     }
 
     private File[] getListOfFiles() {
